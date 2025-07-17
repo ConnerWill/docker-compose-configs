@@ -1,0 +1,2 @@
+# Ignore all .env files anywhere in the repo
+**/*.env
