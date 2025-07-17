@@ -1,3 +1,4 @@
 # Ignore all .env files anywhere in the repo (Except EXAMPLE.env)
 **/*.env
 !**/EXAMPLE.env
+pihole-wireguard-unbound/config
