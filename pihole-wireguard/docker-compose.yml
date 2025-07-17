@@ -56,6 +56,7 @@ services:
       - FTLCONF_webserver_api_password=${PIHOLE_WEBUI_PASSWORD:-changeme}
       # If using Docker's default `bridge` network setting the dns listening mode should be set to 'all'
       - FTLCONF_dns_listeningMode=${PIHOLE_FTLCONF_DNS_LISTENINGMODE:-all}
+      - FTLCONF_dns_upstreams=${PIHOLE_DNS_SERVER_1};${PIHOLE_DNS_SERVER_2}'
       - DNSMASQ_LISTENING=${PIHOLE_DNSMASQ_LISTENING:-all}
       - DNS1=${PIHOLE_DNS_SERVER_1:-1.1.1.1}
       - DNS2=${PIHOLE_DNS_SERVER_2:-1.0.0.1}
