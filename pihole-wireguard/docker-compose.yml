@@ -62,19 +62,6 @@ services:
     volumes:
       - ${PIHOLE_ETC_DIR:-/opt/pihole/etc-pihole}:/etc/pihole
       - ${PIHOLE_DNSMASQ_DIR:-/opt/pihole/etc-dnsmasq.d}:/etc/dnsmasq.d
-    ports:
-      - ${PIHOLE_WEBUI_PORT:-8080}:80
-      # DNS Ports
-      - 53:53/tcp
-      - 53:53/udp
-      # Default HTTP Port
-      - 80:80/tcp
-      # Default HTTPs Port. FTL will generate a self-signed certificate
-      - 443:443/tcp
-      # Uncomment the below if using Pi-hole as your DHCP Server
-      #- "67:67/udp"
-      # Uncomment the line below if you are using Pi-hole as your NTP server
-      #- "123:123/udp"
     restart: unless-stopped
     networks:
       vpn:
