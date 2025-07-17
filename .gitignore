@@ -1,4 +1,10 @@
 # Ignore all .env files anywhere in the repo (Except EXAMPLE.env)
 **/*.env
 !**/EXAMPLE.env
-pihole-wireguard-unbound/config
+
+pihole-wireguard-unbound/config/*
+pihole-wireguard-unbound/etc-dnsmasq.d/*
+pihole-wireguard-unbound/etc-pihole/*
+!pihole-wireguard-unbound/config/
+!pihole-wireguard-unbound/etc-dnsmasq.d/
+!pihole-wireguard-unbound/etc-pihole/
