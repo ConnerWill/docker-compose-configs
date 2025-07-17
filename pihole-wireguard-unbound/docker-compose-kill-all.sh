@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ENV_FILE="./.env"
-PIHOLE_NETWORK_NAME="pihole_vpn"
+PIHOLE_NETWORK_NAME="pihole-wireguard-unbound_vpn"
 
 source "${ENV_FILE}" || return 1
 
