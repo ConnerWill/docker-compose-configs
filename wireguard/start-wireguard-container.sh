@@ -191,16 +191,20 @@ check_wireguard_status() {
 
 # Check the logs of the container
 check_docker_compose_logs() {
+    draw_line "-"
+
     if ! command -v docker >/dev/null 2>&1; then
         printf "${COLOR_RED}ERROR${COLOR_RESET}: docker is not installed.\n" >&2
         return 1
     fi
     if docker logs "${WIREGUARD_CONTAINER_NAME}"; then
+        draw_line "-"
         return 0
     else
         printf "${COLOR_YELLOW}ERROR${COLOR_RESET}: Unable to show logs for '%s'.${COLOR_RESET}\n" "${WIREGUARD_CONTAINER_NAME}"
         return 1
     fi
+
 }
 
 # Display usage information
