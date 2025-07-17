@@ -1,0 +1,82 @@
+---
+version: '3.8'
+
+networks:
+  vpn:
+    driver: ${NETWORK_DRIVER:-bridge}
+    ipam:
+      config:
+        - subnet: ${NETWORK_SUBNET:-10.14.14.0/24}
+
+services:
+  wireguard:
+    image: ${WIREGUARD_IMAGE_NAME:-lscr.io/linuxserver/wireguard:latest}
+    container_name: ${WIREGUARD_CONTAINER_NAME:-wireguard}
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TIME_ZONE:-America/Chicago}
+      - SERVERURL=${WIREGUARD_SERVER_URL:-vpn.example.com}
+      - SERVERPORT=${WIREGUARD_SERVER_PORT:-51820}
+      - PEERS=${WIREGUARD_PEERS:-1}
+      - PEERDNS=${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+      - INTERNAL_SUBNET=${WIREGUARD_INTERNAL_SUBNET:-10.13.13.0}
+      - ALLOWEDIPS=${WIREGUARD_ALLOWED_IPS:-0.0.0.0/0}
+      - PERSISTENTKEEPALIVE_PEERS=
+      - LOG_CONFS=true
+    volumes:
+      - ${WIREGUARD_CONFIG_DIR:-/opt/wireguard/config}:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - ${WIREGUARD_SERVER_PORT:-51820}:51820/udp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+    networks:
+      vpn:
+        ipv4_address: ${WIREGUARD_IPV4_ADDRESS:-10.14.14.3}
+
+  pihole:
+    image: ${PIHOLE_IMAGE_NAME:-pihole/pihole:latest}
+    container_name: ${PIHOLE_CONTAINER_NAME:-pihole}
+    cap_add:
+      # See https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+      # Required if you are using Pi-hole as your DHCP server, else not needed
+      # - NET_ADMIN
+      # Required if you are using Pi-hole as your NTP client to be able to set the host's system time
+      - SYS_TIME
+      # Optional, if Pi-hole should get some more processing time
+      - SYS_NICE
+    environment:
+      - TZ=${TIME_ZONE:-America/Chicago}
+      - WEBPASSWORD=${PIHOLE_WEBUI_PASSWORD:-changeme}
+      # Set a password to access the web interface. Not setting one will result in a random password being assigned
+      - FTLCONF_webserver_api_password=${PIHOLE_WEBUI_PASSWORD:-changeme}
+      # If using Docker's default `bridge` network setting the dns listening mode should be set to 'all'
+      - FTLCONF_dns_listeningMode=${PIHOLE_FTLCONF_DNS_LISTENINGMODE:-all}
+      - DNSMASQ_LISTENING=${PIHOLE_DNSMASQ_LISTENING:-all}
+      - DNS1=${PIHOLE_DNS_SERVER_1:-1.1.1.1}
+      - DNS2=${PIHOLE_DNS_SERVER_2:1.0.0.1}
+    volumes:
+      - ${PIHOLE_ETC_DIR:-/opt/pihole/etc-pihole}:/etc/pihole
+      - ${PIHOLE_DNSMASQ_DIR:-/opt/pihole/etc-dnsmasq.d}:/etc/dnsmasq.d
+    ports:
+      - ${PIHOLE_WEBUI_PORT:-8080}:80
+      # DNS Ports
+      - 53:53/tcp
+      - 53:53/udp
+      # Default HTTP Port
+      - 80:80/tcp
+      # Default HTTPs Port. FTL will generate a self-signed certificate
+      - 443:443/tcp
+      # Uncomment the below if using Pi-hole as your DHCP Server
+      #- "67:67/udp"
+      # Uncomment the line below if you are using Pi-hole as your NTP server
+      #- "123:123/udp"
+    restart: unless-stopped
+    networks:
+      vpn:
+        ipv4_address: ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
