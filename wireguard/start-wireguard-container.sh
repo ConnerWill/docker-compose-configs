@@ -3,7 +3,7 @@ set -Eeuo pipefail
 #trap 'printf "${COLOR_RED}ERROR${COLOR_RESET} occurred at line %d. Exiting.\n" "${LINENO}" >&2' ERR
 
 # Configuration variables for WireGuard and Docker Compose
-WIREGUARD_DIR="${HOME}/vpn/wireguard"
+WIREGUARD_DIR="/opt/wireguard"
 DOCKER_COMPOSE_FILE_DIR="${WIREGUARD_DIR}"
 DOCKER_COMPOSE_FILE="${DOCKER_COMPOSE_FILE_DIR}/docker-compose.yml"
 WIREGUARD_CONFIG_DIR="${WIREGUARD_DIR}/config"
