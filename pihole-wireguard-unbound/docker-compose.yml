@@ -56,10 +56,10 @@ services:
       - FTLCONF_webserver_api_password=${PIHOLE_WEBUI_PASSWORD:-changeme}
       # If using Docker's default `bridge` network setting the dns listening mode should be set to 'all'
       - FTLCONF_dns_listeningMode=${PIHOLE_FTLCONF_DNS_LISTENINGMODE:-all}
-      - FTLCONF_dns_upstreams=${PIHOLE_DNS_SERVER_1};${PIHOLE_DNS_SERVER_2}'
+      - FTLCONF_dns_upstreams=${UNBOUND_IPV4_ADDRESS:-10.14.14.4};${UNBOUND_IPV4_ADDRESS:-10.14.14.4}'
       - DNSMASQ_LISTENING=${PIHOLE_DNSMASQ_LISTENING:-all}
-      - DNS1=${PIHOLE_DNS_SERVER_1:-1.1.1.1}
-      - DNS2=${PIHOLE_DNS_SERVER_2:-1.0.0.1}
+      - DNS1=${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
+      - DNS2=${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
     volumes:
       - ${PIHOLE_ETC_DIR:-/opt/pihole/etc-pihole}:/etc/pihole
       - ${PIHOLE_DNSMASQ_DIR:-/opt/pihole/etc-dnsmasq.d}:/etc/dnsmasq.d
@@ -67,3 +67,13 @@ services:
     networks:
       vpn:
         ipv4_address: ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+
+  unbound:
+    image: ${UNBOUND_IMAGE_NAME:-mvance/unbound:latest}
+    container_name: ${UNBOUND_CONTAINER_NAME:-pihole-unbound}
+    volumes:
+      - ${UNBOUND_CONFIG_DIR:-/opt/pihole-unbound/unbound}:/opt/unbound/etc/unbound:ro
+    restart: unless-stopped
+    networks:
+      vpn:
+        ipv4_address: ${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
