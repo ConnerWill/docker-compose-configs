@@ -6,6 +6,7 @@
   - [Installation](#installation)
   - [Configuration](#configuration)
     - [.env File](#env-file)
+      - [.env File Example](#env-file-example)
 <!--toc:end-->
 
 ## Requirements
@@ -16,7 +17,7 @@
 ## Installation
 
 ```bash
-sudo -s <<< 'mkdir -p /opt/docker && chown -R $(whoami):docker /opt/docker'
+sudo -s <<< "mkdir -p /opt/docker && chown -R $(whoami):docker /opt/docker"
 cd /opt/docker && git clone https://github.com/ConnerWill/docker-compose-configs.git
 ```
 
