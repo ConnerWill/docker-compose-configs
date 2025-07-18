@@ -36,8 +36,6 @@ cp ./EXAMPLE.env ./.env
 #### .env File Example
 
 ```Dotenv
-# shellcheck disable=SC2148,SC1073,SC2034
-
 # Time zone configuration for containers
 TIME_ZONE=America/Chicago
 
