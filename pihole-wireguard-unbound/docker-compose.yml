@@ -44,6 +44,11 @@ services:
     networks:
       vpn:
         ipv4_address: ${WIREGUARD_IPV4_ADDRESS:-10.14.14.3}
+    healthcheck: # Ping pihole for health check
+      test: CMD-SHELL ping -c 1 ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   pihole:
     image: ${PIHOLE_IMAGE_NAME:-pihole/pihole:latest}
@@ -68,8 +73,8 @@ services:
       - DNS1=${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
       - DNS2=${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
     volumes:
-      - ${PIHOLE_ETC_DIR:-/opt/docker/docker-compose-configs/pihole/etc-pihole}:/etc/pihole
-      - ${PIHOLE_DNSMASQ_DIR:-/opt/docker/docker-compose-configs/pihole/etc-dnsmasq.d}:/etc/dnsmasq.d
+      - ${PIHOLE_ETC_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/etc-pihole}:/etc/pihole
+      - ${PIHOLE_DNSMASQ_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/etc-dnsmasq.d}:/etc/dnsmasq.d
     restart: unless-stopped
     read_only: true # Enforce read-only filesystem
     tmpfs:
@@ -78,6 +83,11 @@ services:
     networks:
       vpn:
         ipv4_address: ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/admin/api.php"] # Could also test the admin web gui path: http://localhost/admin/index.php
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   unbound:
     image: ${UNBOUND_IMAGE_NAME:-mvance/unbound:latest}
@@ -88,7 +98,7 @@ services:
     security_opt:
       - no-new-privileges # Prevent privilege escalation
     volumes:
-      - ${UNBOUND_CONFIG_DIR:-/opt/docker/docker-compose-configs/pihole-unbound/unbound}:/opt/docker/docker-compose-configs/unbound/etc/unbound:ro
+      - ${UNBOUND_CONFIG_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/unbound}:/etc/unbound:ro
     restart: unless-stopped
     read_only: true # Enforce read-only filesystem
     tmpfs:
@@ -98,3 +108,8 @@ services:
     networks:
       vpn:
         ipv4_address: ${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "cloudflare.com"] # Need to confirm 'dig' is installed on the image
+      interval: 30s
+      timeout: 5s
+      retries: 3
