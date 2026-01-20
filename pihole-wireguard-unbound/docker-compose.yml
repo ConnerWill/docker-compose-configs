@@ -11,6 +11,9 @@ services:
   wireguard:
     image: ${WIREGUARD_IMAGE_NAME:-lscr.io/linuxserver/wireguard:latest}
     container_name: ${WIREGUARD_CONTAINER_NAME:-wireguard}
+    user: "1000:1000"
+    cap_drop:
+      - ALL # Drop all capabilities by default
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -27,53 +30,109 @@ services:
       - PERSISTENTKEEPALIVE_PEERS=
       - LOG_CONFS=true
     volumes:
-      - ${WIREGUARD_CONFIG_DIR:-/opt/docker/docker-compose-configs/wireguard/config}:/config
-      - /lib/modules:/lib/modules
+      - ${WIREGUARD_CONFIG_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/wireguard}:/config:rw
+      - /lib/modules:/lib/modules:ro # Mount read-only for added security
     ports:
       - ${WIREGUARD_SERVER_PORT:-51820}:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    restart: unless-stopped
+    restart: always
+    read_only: true # Enforce read-only filesystem
+    tmpfs:
+      - /tmp:size=10M,mode=1777     # Mount tmpfs for temporary files
+      - /var/log:size=10M,mode=1777 # Mount tmpfs for temporary files
     networks:
       vpn:
         ipv4_address: ${WIREGUARD_IPV4_ADDRESS:-10.14.14.3}
+    dns:
+      - ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck: # Ping pihole for health check
+      test: CMD-SHELL ping -c 1 ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   pihole:
     image: ${PIHOLE_IMAGE_NAME:-pihole/pihole:latest}
     container_name: ${PIHOLE_CONTAINER_NAME:-pihole}
+    user: "1000:1000"
+    cap_drop:
+      - ALL # Drop all capabilities by default
     cap_add:
       # See https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
-      # Required if you are using Pi-hole as your DHCP server, else not needed
-      # - NET_ADMIN
-      # Required if you are using Pi-hole as your NTP client to be able to set the host's system time
-      - SYS_TIME
-      # Optional, if Pi-hole should get some more processing time
-      - SYS_NICE
+      - SYS_TIME    # Required for NTP client
+      - SYS_NICE    # Optional for process priority
+      # - NET_ADMIN # Uncomment only if using Pi-hole as DHCP server
+    security_opt:
+      - no-new-privileges # Prevent privilege escalation
     environment:
       - TZ=${TIME_ZONE:-America/Chicago}
       - WEBPASSWORD=${PIHOLE_WEBUI_PASSWORD:-changeme}
-      # Set a password to access the web interface. Not setting one will result in a random password being assigned
-      - FTLCONF_webserver_api_password=${PIHOLE_WEBUI_PASSWORD:-changeme}
-      # If using Docker's default `bridge` network setting the dns listening mode should be set to 'all'
-      - FTLCONF_dns_listeningMode=${PIHOLE_FTLCONF_DNS_LISTENINGMODE:-all}
+      - FTLCONF_webserver_api_password=${PIHOLE_WEBUI_PASSWORD:-changeme}   # Set a password to access the web interface. Not setting one will result in a random password being assigned
+      - FTLCONF_dns_listeningMode=${PIHOLE_FTLCONF_DNS_LISTENINGMODE:-all}  # If using Docker's default `bridge` network setting the dns listening mode should be set to 'all'
       - FTLCONF_dns_upstreams=${UNBOUND_IPV4_ADDRESS:-10.14.14.4};${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
+      - FTLCONF_dns_dnssec=true
       - DNSMASQ_LISTENING=${PIHOLE_DNSMASQ_LISTENING:-all}
       - DNS1=${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
       - DNS2=${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
     volumes:
-      - ${PIHOLE_ETC_DIR:-/opt/docker/docker-compose-configs/pihole/etc-pihole}:/etc/pihole
-      - ${PIHOLE_DNSMASQ_DIR:-/opt/docker/docker-compose-configs/pihole/etc-dnsmasq.d}:/etc/dnsmasq.d
-    restart: unless-stopped
+      - ${PIHOLE_ETC_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/etc-pihole}:/etc/pihole:rw
+      - ${PIHOLE_DNSMASQ_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/etc-dnsmasq.d}:/etc/dnsmasq.d:rw
+    restart: always
+    read_only: true # Enforce read-only filesystem
+    tmpfs:
+      - /tmp:size=10M,mode=1777     # Mount tmpfs for temporary files
+      - /var/log:size=10M,mode=1777 # Mount tmpfs for temporary files
     networks:
       vpn:
         ipv4_address: ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+    dns:
+      - ${PIHOLE_IPV4_ADDRESS:-10.14.14.2}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/admin/api.php"] # Could also test the admin web gui path: http://localhost/admin/index.php
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   unbound:
     image: ${UNBOUND_IMAGE_NAME:-mvance/unbound:latest}
     container_name: ${UNBOUND_CONTAINER_NAME:-pihole-unbound}
+    user: "1000:1000" # Run as non-root user
+    cap_drop:
+      - ALL # Drop all capabilities by default
+    security_opt:
+      - no-new-privileges # Prevent privilege escalation
     volumes:
-      - ${UNBOUND_CONFIG_DIR:-/opt/docker/docker-compose-configs/pihole-unbound/unbound}:/opt/docker/docker-compose-configs/unbound/etc/unbound:ro
-    restart: unless-stopped
+      - ${UNBOUND_CONFIG_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/unbound}:/etc/unbound:ro # TODO: Confirm this should be ro
+    restart: always
+    read_only: true # Enforce read-only filesystem
+    tmpfs:
+      - /tmp:size=10M,mode=1777             # Mount tmpfs for temporary files
+      - /var/log:size=10M,mode=1777         # Mount tmpfs for temporary files
+      - /var/lib/unbound:size=10M,mode=1777 # Mount tmpfs for root.key updates
     networks:
       vpn:
         ipv4_address: ${UNBOUND_IPV4_ADDRESS:-10.14.14.4}
+    dns:
+      - 127.0.0.1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # TODO: Install 'dig' on the image. Currently not installed
+    # healthcheck:
+    #   test: ["CMD", "dig", "@127.0.0.1", "cloudflare.com"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3

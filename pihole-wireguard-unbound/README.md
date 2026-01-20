@@ -1,5 +1,42 @@
-# shellcheck disable=SC2148,SC1073,SC2034
+# pihole-wireguard-unbound
 
+<!--toc:start-->
+- [pihole-wireguard-unbound](#pihole-wireguard-unbound)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+    - [.env File](#env-file)
+      - [.env File Example](#env-file-example)
+<!--toc:end-->
+
+## Requirements
+
+- `docker`
+- `docker-compose`
+
+## Installation
+
+```bash
+sudo -s <<< "mkdir -p /opt/docker && chown -R $(whoami):docker /opt/docker"
+cd /opt/docker && git clone https://github.com/ConnerWill/docker-compose-configs.git
+```
+
+## Configuration
+
+### .env File
+
+Configuration can be done by copying the `./EXAMPLE.env` file to `./.env` and then modifying the values.
+
+```bash
+cp ./EXAMPLE.env ./.env
+```
+
+> [!NOTE]
+> When changing configuration values in `./.env`, make sure to change values in the other configuration files *(e.g. `./unbound/unbound.conf`)*.
+
+#### .env File Example
+
+```Dotenv
 # Time zone configuration for containers
 TIME_ZONE=America/Chicago
 
@@ -33,3 +70,5 @@ UNBOUND_CONFIG_DIR=/opt/docker/docker-compose-configs/pihole-wireguard-unbound/u
 UNBOUND_CONTAINER_NAME=pihole-unbound       # Name of the Unbound container
 UNBOUND_IMAGE_NAME=mvance/unbound:latest    # Unbound image to use
 UNBOUND_IPV4_ADDRESS=10.14.14.4             # IPv4 address for the Unbound container
+
+```
