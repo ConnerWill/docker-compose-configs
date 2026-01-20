@@ -7,8 +7,11 @@ services:
     hostname: ${JELLYFIN_NAME}
     network_mode: host
     restart: unless-stopped
+    user: ${PUID}:${PGID}
     environment:
       - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
     # Optional - may be necessary for docker healthcheck to pass if running in host network mode
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -16,6 +19,20 @@ services:
       - ${JELLYFIN_CONFIG}:/config
       - ${JELLYFIN_CACHE}:/cache
       - ${JELLYFIN_MEDIA}:/media
+      - /dev/nvidia-caps:/dev/nvidia-caps
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-modeset:/dev/nvidia-modeset
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+      - /dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     healthcheck:
       # TODO: Confirm '/health' works as expected: https://jellyfin.org/docs/general/post-install/networking/advanced/monitoring
       test: >
@@ -42,6 +59,8 @@ services:
       - LOG_LEVEL=${JELLYSEERR_LOG_LEVEL}
       - TZ=${TZ}
       - PORT=${JELLYSEERR_PORT}
+      - PUID=${PUID}
+      - PGID=${PGID}
     ports:
       - "${JELLYSEERR_PORT}:${JELLYSEERR_PORT}"
     volumes:
