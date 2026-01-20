@@ -41,7 +41,7 @@ function source_file(){
   local input_file
   input_file="${1}"
   if [[ -e "${input_file}" ]]; then
-    if source "${input_file}"; then
+    if ! source "${input_file}"; then
       die "Unable to source file: '${input_file}'"
     fi
   fi
