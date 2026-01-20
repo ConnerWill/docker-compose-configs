@@ -1,40 +1,56 @@
 #!/usr/bin/env bash
 
-MEDIA_DIR="/media/torrent-downloads/finished"
-CONFIG_DIR="/opt/jellyfin/config-dir"
-CACHE_DIR="/opt/jellyfin/cache-dir"
-JELLYFIN_CONTAINER_NAME="jellyfin"
-JELLYFIN_IMAGE="jellyfin/jellyfin"
-JELLYFIN_VERSION="latest"
+## OPTIONS
 
 set -e
 
-clear
+## VARIABLES
 
-printf "\n\n[\x1B[0;1;38;5;46mDONE\x1B[0m]\n\n"
+SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
+DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
+TEXT_GREEN='\x1B[38;5;46m'
+TEXT_RED='\x1B[38;5;196m'
+TEXT_RESET='\x1B[0m'
 
-docker run                                            \
-  --detach                                            \
-  --name "${JELLYFIN_CONTAINER_NAME}"                 \
-  --net=host                                          \
-  --volume ${CONFIG_DIR}:/config                      \
-  --volume ${CACHE_DIR}:/cache                        \
-  --mount type=bind,source=${MEDIA_DIR},target=/media \
-  --restart=unless-stopped                            \
-  ${JELLYFIN_IMAGE}:${JELLYFIN_VERSION}
+## FUNCTIONS
 
-printf "\n\n[\x1B[0;1;38;5;46mDONE\x1B[0m]\n\n"
+function die(){
+  local input_msg
+  input_msg="${1}"
+  printf "${TEXT_RED}ERROR: %s${TEXT_RESET}\n" "${input_msg}"
+  exit 1
+}
 
-## Possible Options
-# docker run -d \
-#  --name=jellyfin \
-#  --volume /path/to/config:/config \
-#  --volume /path/to/cache:/cache \
-#  --volume /path/to/media:/media \
-#  --user 1000:1000 \
-#  --net=host \
-#  --restart=unless-stopped \
-#  --runtime=nvidia \ # https://jellyfin.org/docs/general/administration/hardware-acceleration/nvidia
-#  --gpus all \
-#  jellyfin/jellyfin
+function success(){
+  local input_msg
+  input_msg="${1}"
+  printf "${TEXT_GREEN}SUCCESS: %s${TEXT_RESET}\n" "${input_msg}"
+}
 
+function file_exists(){
+  local input_file
+  input_file="${1}"
+  if [[ ! -e "${input_file}" ]]; then
+    die "Cannot find file: '${input_file}'"
+  fi
+}
+
+function is_installed(){
+  local input_pkg
+  input_pkg="${1}"
+  if ! command -v "${input_pkg}" >/dev/null 2>&1; then
+    die "Could not find '${input_pkg}' in PATH"
+  fi
+}
+
+function start_docker(){
+  docker-compose up --wait --detach
+}
+
+## MAIN
+
+file_exists "${DOCKER_COMPOSE_FILE}"
+is_installed "docker"
+is_installed "docker-compose"
+start_docker
