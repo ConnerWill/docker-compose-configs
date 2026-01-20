@@ -1,0 +1,39 @@
+---
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - /opt/jellyfin/config-dir:/config
+      - /opt/jellyfin/cache-dir:/cache
+      - /media:/media
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8096"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    depends_on:
+      - jellyfin
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=America/Chicago
+      - PORT=5055
+    ports:
+      - "5055:5055"
+    volumes:
+      - /opt/jellyseerr/config:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5055"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
