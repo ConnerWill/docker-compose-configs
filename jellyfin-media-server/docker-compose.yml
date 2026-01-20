@@ -2,38 +2,58 @@
 
 services:
   jellyfin:
-    image: jellyfin/jellyfin:latest
-    container_name: jellyfin
+    image: ${JELLYFIN_IMAGE}:${JELLYFIN_IMAGE_VERSION}
+    container_name: ${JELLYFIN_NAME}
+    hostname: ${JELLYFIN_NAME}
     network_mode: host
     restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - /opt/jellyfin/config-dir:/config
-      - /opt/jellyfin/cache-dir:/cache
-      - /media:/media
+      - ${JELLYFIN_CONFIG}:/config
+      - ${JELLYFIN_CACHE}:/cache
+      - ${JELLYFIN_MEDIA}:/media
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8096"]
+      # TODO: Confirm '/health' works as expected: https://jellyfin.org/docs/general/post-install/networking/advanced/monitoring
+      test: >
+        curl -fsS http://127.0.0.1:${JELLYFIN_PORT}/health || exit 1
       interval: 30s
-      retries: 3
-      start_period: 10s
       timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    depends_on:
-      - jellyfin
-    environment:
-      - LOG_LEVEL=debug
-      - TZ=America/Chicago
-      - PORT=5055
-    ports:
-      - "5055:5055"
-    volumes:
-      - /opt/jellyseerr/config:/app/config
+    image: ${JELLYSEERR_IMAGE}:${JELLYSEERR_IMAGE_VERSION}
+    container_name: ${JELLYSEERR_NAME}
+    hostname: ${JELLYSEERR_NAME}
     restart: unless-stopped
+    depends_on:
+      jellyfin:
+        condition: service_healthy
+    environment:
+      - LOG_LEVEL=${JELLYSEERR_LOG_LEVEL}
+      - TZ=${TZ}
+      - PORT=${JELLYSEERR_PORT}
+    ports:
+      - "${JELLYSEERR_PORT}:${JELLYSEERR_PORT}"
+    volumes:
+      - ${JELLYSEERR_CONFIG}:/app/config
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5055"]
+      test: >
+        curl -fsS http://127.0.0.1:${JELLYSEERR_PORT} || exit 1
       interval: 30s
-      retries: 3
-      start_period: 10s
       timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
