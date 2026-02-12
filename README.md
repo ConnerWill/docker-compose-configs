@@ -1,5 +1,8 @@
 # Docker-Compose Configs
 
+> [!NOTE]
+> Moving this project to [ConnerWill/infra](https://github.com/connerwill/infra)
+
 ## Requirements
 
 - `docker`
