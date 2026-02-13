@@ -37,7 +37,7 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: always
-    read_only: true # Enforce read-only filesystem
+    # read_only: true # Enforce read-only filesystem
     tmpfs:
       - /tmp:size=10M,mode=1777     # Mount tmpfs for temporary files
       - /var/log:size=10M,mode=1777 # Mount tmpfs for temporary files
@@ -84,7 +84,7 @@ services:
       - ${PIHOLE_ETC_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/etc-pihole}:/etc/pihole:rw
       - ${PIHOLE_DNSMASQ_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/etc-dnsmasq.d}:/etc/dnsmasq.d:rw
     restart: always
-    read_only: true # Enforce read-only filesystem
+    # read_only: true # Enforce read-only filesystem
     tmpfs:
       - /tmp:size=10M,mode=1777     # Mount tmpfs for temporary files
       - /var/log:size=10M,mode=1777 # Mount tmpfs for temporary files
@@ -113,9 +113,9 @@ services:
     security_opt:
       - no-new-privileges # Prevent privilege escalation
     volumes:
-      - ${UNBOUND_CONFIG_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/unbound}:/etc/unbound:ro # TODO: Confirm this should be ro
+      - ${UNBOUND_CONFIG_DIR:-/opt/docker/docker-compose-configs/pihole-wireguard-unbound/unbound}:/etc/unbound:rw # TODO: Confirm this should be ro
     restart: always
-    read_only: true # Enforce read-only filesystem
+    # read_only: true # Enforce read-only filesystem
     tmpfs:
       - /tmp:size=10M,mode=1777             # Mount tmpfs for temporary files
       - /var/log:size=10M,mode=1777         # Mount tmpfs for temporary files
