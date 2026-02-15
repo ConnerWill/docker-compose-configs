@@ -17,8 +17,7 @@ IFS=$'\n\t'
 readonly SCRIPT_PATH="${0}"
 readonly SCRIPT_NAME="${SCRIPT_PATH##*/}"
 readonly SCRIPT_DIR="$(
-  # Avoid cd/pwd resolution; just compute the containing path segment.
-  # If SCRIPT_PATH has no slash, use "."
+  # Avoid cd/pwd resolution. Just compute the containing path segment.
   if [[ "${SCRIPT_PATH}" == */* ]]; then
     printf "%s\n" "${SCRIPT_PATH%/*}"
   else
@@ -34,18 +33,22 @@ die() {
   exit 1
 }
 
-detect_compose() {
-  # Prefer Docker Compose v2 plugin: `docker compose`
+set_compose_bin() {
+  # Set the global array COMPOSE_BIN to either:
+  #   ("docker" "compose")  # v2 plugin
+  # or
+  #   ("docker-compose")    # v1
+  #
+  # This avoids string splitting (which breaks if IFS doesn't include spaces).
   if command -v docker >/dev/null 2>&1; then
     if docker compose version >/dev/null 2>&1; then
-      printf "docker\0compose"
+      COMPOSE_BIN=("docker" "compose")
       return 0
     fi
   fi
 
-  # Fall back to legacy v1 binary: `docker-compose`
   if command -v docker-compose >/dev/null 2>&1; then
-    printf "docker-compose"
+    COMPOSE_BIN=("docker-compose")
     return 0
   fi
 
@@ -122,8 +125,9 @@ print_cmd() {
 }
 
 main() {
-  local -a compose_bin=()
-  local detected=""
+  # Set by set_compose_bin()
+  local -a COMPOSE_BIN=()
+  set_compose_bin
 
   local -a global_args=()
   local -a cmd_args=()
@@ -141,17 +145,8 @@ main() {
   local -a default_services=("wireguard" "pihole" "unbound")
 
   # Env file handling:
-  # - default is "./.env"
-  # - user can override via --env-file <path>
   local env_file_path="./${DEFAULT_ENV_FILE}"
   local user_set_env_file=false
-
-  detected="$(detect_compose)"
-  if [[ "${detected}" == "docker-compose" ]]; then
-    compose_bin=("docker-compose")
-  else
-    compose_bin=("docker" "compose")
-  fi
 
   # Parse args
   while (( $# > 0 )); do
@@ -238,7 +233,7 @@ main() {
     die "Missing required env file in current directory: ${env_file_path}"
   fi
 
-  # Always pass env file to Compose so interpolation (container_name, etc.) uses it
+  # Always pass env file to Compose so interpolation uses it
   global_args+=(--env-file "${env_file_path}")
 
   if [[ "${dry_run}" == "true" ]]; then
@@ -253,7 +248,6 @@ main() {
         cmd_args+=(--detach)
       fi
       cmd_args+=(--yes)
-
       if [[ "${force_recreate}" == "true" ]]; then
         cmd_args+=(--force-recreate)
       fi
@@ -291,7 +285,7 @@ main() {
   fi
 
   local -a argv=()
-  argv+=("${compose_bin[@]}")
+  argv+=("${COMPOSE_BIN[@]}")
   argv+=("${global_args[@]}")
   argv+=("${cmd_args[@]}")
   argv+=("${passthrough[@]}")
