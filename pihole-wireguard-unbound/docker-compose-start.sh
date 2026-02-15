@@ -5,7 +5,6 @@ set -e
 declare -a compose_args
 compose_args=(
   up
-  --force-recreate
   --pull always
   --yes
   --detach
@@ -27,6 +26,16 @@ is_installed(){
 if [[ "${1}" == "-d" || "${1}" == "--dry-drun" || "${1}" == "--dryrun" || "${1}" == "--dry" ]]; then
   compose_args+=( --dry-run )
 fi
-
+shift
+# TODO: Fix this. make better arg passing
+if [[ "${1}" == "-f" || "${1}" == "--force" || "${1}" == "--recreate" || "${1}" == "--force-recreate" ]]; then
+  compose_args+=( --force-recreate )
+fi
+shift
+# TODO: Fix this. make better arg passing
+if [[ "${1}" == "-h" || "${1}" == "--help" || "${1}" == "help" || "${1}" == "-help" ]]; then
+  show_help
+fi
+shift
 compose_bin="$(is_installed 'docker-compose')"
-"${compose_bin}" "${compose_args[@]}"
+echo "${compose_bin}" "${compose_args[@]}" "${@}"
