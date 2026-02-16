@@ -3,8 +3,10 @@
 !**/EXAMPLE.env
 
 pihole-wireguard-unbound/config/*
+pihole-wireguard-unbound/wireguard/*
 pihole-wireguard-unbound/etc-dnsmasq.d/*
 pihole-wireguard-unbound/etc-pihole/*
 !pihole-wireguard-unbound/config/
+!pihole-wireguard-unbound/wireguard/
 !pihole-wireguard-unbound/etc-dnsmasq.d/
 !pihole-wireguard-unbound/etc-pihole/
