@@ -1,0 +1,21 @@
+---
+services:
+  zoneminder:
+    container_name: ${ZONEMINDER_CONTAINER_NAME:-zoneminder}
+    image: ${ZONEMINDER_IMAGE:-zoneminderhq/zoneminder:latest-ubuntu18.04}
+    restart: ${ZONEMINDER_RESTART:-unless-stopped}
+    ports:
+      - ${ZONEMINDER_PORT:-7879}:80
+    network_mode: bridge
+    privileged: true
+    shm_size: 512M
+    environment:
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ${ZONEMINDER_EVENTS_DIR:-./zoneminder/events}:/var/cache/zoneminder/events
+      - ${ZONEMINDER_IMAGE_DIR:-./zoneminder/images}:/var/cache/zoneminder/images
+      - ${ZONEMINDER_LOG_DIR:-./zoneminder/log}:/var/log/zm
+      - mysql:/var/lib/mysql
+
+volumes:
+  mysql:
