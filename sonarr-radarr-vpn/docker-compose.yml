@@ -16,10 +16,8 @@ services:
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
       - SERVER_CITIES=${SERVER_CITIES:-Amsterdam}  # Optional location preference
-        # Allow inbound access to the published ports from LAN
-      - FIREWALL_INPUT_PORTS=7878,8989,8080
-      # Only needed if VPN'd containers must reach LAN services
-      #- FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}
+      - FIREWALL_INPUT_PORTS=7878,8989,8080  # Allow inbound access to the published ports from LAN
+      #- FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}  # Only needed if VPN'd containers must reach LAN services
       - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
     volumes:
       - gluetun:/gluetun
@@ -27,6 +25,7 @@ services:
     ports:
       - "7878:7878/tcp"  # Radarr UI/API
       - "8989:8989/tcp"  # Sonarr UI/API
+      - "9696:9696/tcp"  # Prowlarr UI/API
       - "8080:8080/tcp"  # qBittorrent Web UI (optional; keep commented to avoid exposing it)
     restart: unless-stopped
 
@@ -74,8 +73,21 @@ services:
       - ${DOWNLOADS_ROOT}:/downloads  # Where downloads land (Sonarr imports from here)
     restart: unless-stopped
 
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - prowlarr_config:/config
+    restart: unless-stopped
+
 volumes:
   gluetun:
   qbittorrent_config:
   radarr_config:
   sonarr_config:
+  prowlarr_config:
