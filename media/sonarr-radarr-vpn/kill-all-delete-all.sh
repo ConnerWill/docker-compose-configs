@@ -1,8 +1,33 @@
 #!/usr/bin/env bash
 
-ENV_FILE="./.env"
+set -e
 
-source "${ENV_FILE}" || return 1
+ENV_FILE="./.env"
+PROG="${BASH_SOURCE[0]}"
+INPUT="${1}"
+
+show_help(){
+  cat <<EOF
+Usage: ${PROG} YES
+
+EOF
+exit 1
+}
+
+
+show_status(){
+  printf "Starting removal\n"
+}
+
+if [[ -z "${INPUT}" ]]; then
+  show_help
+elif [[ "${INPUT}" == "YES" ]]; then
+  show_status
+else
+  show_help
+fi
+
+source "${ENV_FILE}" || exit 1
 
 docker-compose kill
 docker container rm gluetun qbittorrent radarr sonarr
