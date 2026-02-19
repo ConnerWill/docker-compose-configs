@@ -21,13 +21,11 @@ services:
       - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
     volumes:
       - gluetun:/gluetun
-
     # Publish ports on GLUETUN because other containers share its network namespace
     ports:
       - "7878:7878/tcp"  # Radarr UI/API
       - "8989:8989/tcp"  # Sonarr UI/API
       - "8080:8080/tcp"  # qBittorrent Web UI (optional; keep commented to avoid exposing it)
-
     restart: unless-stopped
 
   qbittorrent:
