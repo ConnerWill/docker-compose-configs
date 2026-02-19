@@ -1,3 +1,4 @@
+---
 version: "3.8"
 
 services:
@@ -9,31 +10,23 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
-      - TZ=${TZ}
-
-      # Mullvad WireGuard only
+      - TZ=${TZ:-America/Chicago}
       - VPN_SERVICE_PROVIDER=mullvad
       - VPN_TYPE=wireguard
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
-
-      # Optional location preference
-      - SERVER_CITIES=${SERVER_CITIES}
-
+      - SERVER_CITIES=${SERVER_CITIES:-Amsterdam}  # Optional location preference
       # Allow LAN clients to reach the published ports (Jellyseerr host + your workstation)
-      - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS}
-
-      - LOG_LEVEL=${GLUETUN_LOG_LEVEL}
+      - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}
+      - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
     volumes:
       - gluetun:/gluetun
 
     # Publish ports on GLUETUN because other containers share its network namespace
     ports:
-      - "7878:7878/tcp" # Radarr UI/API
-      - "8989:8989/tcp" # Sonarr UI/API
-
-      # qBittorrent Web UI (optional; keep commented to avoid exposing it)
-      # - "8080:8080/tcp"
+      - "7878:7878/tcp"  # Radarr UI/API
+      - "8989:8989/tcp"  # Sonarr UI/API
+      - "8080:8080/tcp"  # qBittorrent Web UI (optional; keep commented to avoid exposing it)
 
     restart: unless-stopped
 
@@ -42,9 +35,9 @@ services:
     container_name: qbittorrent
     network_mode: "service:gluetun"
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Chicago}
       - WEBUI_PORT=8080
     volumes:
       - qbittorrent_config:/config
@@ -56,18 +49,14 @@ services:
     container_name: radarr
     network_mode: "service:gluetun"
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Chicago}
     volumes:
       - radarr_config:/config
-
-      # Your media layout
       - ${MEDIA_ROOT}/movies:/movies
       - ${MEDIA_ROOT}/documentaries:/documentaries
-
-      # Where downloads land (Radarr imports from here)
-      - ${DOWNLOADS_ROOT}:/downloads
+      - ${DOWNLOADS_ROOT}:/downloads  # Where downloads land (Radarr imports from here)
     restart: unless-stopped
 
   sonarr:
@@ -75,18 +64,14 @@ services:
     container_name: sonarr
     network_mode: "service:gluetun"
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Chicago}
     volumes:
       - sonarr_config:/config
-
-      # Your media layout
       - ${MEDIA_ROOT}/shows:/tv
       - ${MEDIA_ROOT}/documentaries:/documentaries
-
-      # Where downloads land (Sonarr imports from here)
-      - ${DOWNLOADS_ROOT}:/downloads
+      - ${DOWNLOADS_ROOT}:/downloads  # Where downloads land (Sonarr imports from here)
     restart: unless-stopped
 
 volumes:
