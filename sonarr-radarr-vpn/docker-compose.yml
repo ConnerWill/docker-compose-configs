@@ -16,8 +16,10 @@ services:
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
       - SERVER_CITIES=${SERVER_CITIES:-Amsterdam}  # Optional location preference
-      # Allow LAN clients to reach the published ports (Jellyseerr host + your workstation)
-      - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}
+        # Allow inbound access to the published ports from LAN
+      - FIREWALL_INPUT_PORTS=7878,8989,8080
+      # Only needed if VPN'd containers must reach LAN services
+      #- FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}
       - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
     volumes:
       - gluetun:/gluetun
