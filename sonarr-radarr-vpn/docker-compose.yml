@@ -1,6 +1,4 @@
 ---
-version: "3.8"
-
 services:
   gluetun:
     image: qmcgaw/gluetun:latest
@@ -15,18 +13,18 @@ services:
       - VPN_TYPE=wireguard
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
-      - SERVER_CITIES=${SERVER_CITIES:-Amsterdam}  # Optional location preference
-      - FIREWALL_INPUT_PORTS=7878,8989,8080  # Allow inbound access to the published ports from LAN
-      #- FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}  # Only needed if VPN'd containers must reach LAN services
+      - SERVER_CITIES=${SERVER_CITIES:-Toronto}
+      - FIREWALL_INPUT_PORTS=${FIREWALL_INPUT_PORTS:-7878,8989,9696,8686,8080}  # Allow inbound access to published ports from LAN
+      # - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}  # Only needed if VPN'd containers must reach LAN services
       - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
     volumes:
       - gluetun:/gluetun
-    # Publish ports on GLUETUN because other containers share its network namespace
     ports:
       - "7878:7878/tcp"  # Radarr UI/API
       - "8989:8989/tcp"  # Sonarr UI/API
       - "9696:9696/tcp"  # Prowlarr UI/API
-      - "8080:8080/tcp"  # qBittorrent Web UI (optional; keep commented to avoid exposing it)
+      - "8686:8686/tcp"  # Lidarr UI/API
+      - "8080:8080/tcp"  # qBittorrent Web UI (optional; remove if you don't want it exposed)
     restart: unless-stopped
 
   qbittorrent:
@@ -55,7 +53,7 @@ services:
       - radarr_config:/config
       - ${MEDIA_ROOT}/movies:/movies
       - ${MEDIA_ROOT}/documentaries:/documentaries
-      - ${DOWNLOADS_ROOT}:/downloads  # Where downloads land (Radarr imports from here)
+      - ${DOWNLOADS_ROOT}:/downloads
     restart: unless-stopped
 
   sonarr:
@@ -70,7 +68,21 @@ services:
       - sonarr_config:/config
       - ${MEDIA_ROOT}/shows:/tv
       - ${MEDIA_ROOT}/documentaries:/documentaries
-      - ${DOWNLOADS_ROOT}:/downloads  # Where downloads land (Sonarr imports from here)
+      - ${DOWNLOADS_ROOT}:/downloads
+    restart: unless-stopped
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - lidarr_config:/config
+      - ${MEDIA_ROOT}/music:/music
+      - ${DOWNLOADS_ROOT}:/downloads
     restart: unless-stopped
 
   prowlarr:
@@ -91,3 +103,4 @@ volumes:
   radarr_config:
   sonarr_config:
   prowlarr_config:
+  lidarr_config:
