@@ -1,7 +1,7 @@
 ---
 services:
   motioneye:
-    image: ${MOTIONEYE_IMAGE:-ccrisan/motioneye:master-armhf}
+    image: ${MOTIONEYE_IMAGE:-ghcr.io/motioneye-project/motioneye:latest}
     container_name: ${MOTIONEYE_CONTAINER_NAME:-motioneye}
     hostname: ${MOTIONEYE_HOSTNAME:-motioneye}
     restart: ${MOTIONEYE_RESTART:-unless-stopped}
