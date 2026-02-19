@@ -11,3 +11,4 @@ services:
       - "${MOTIONEYE_LOCALTIME_BIND:-/etc/localtime}:/etc/localtime:ro"
       - "${MOTIONEYE_CONFIG_DIR:-./motioneye/config}:/etc/motioneye"
       - "${MOTIONEYE_DATA_DIR:-./motioneye/data}:/var/lib/motioneye"
+      - "${MOTIONEYE_LOG_DIR:-./motioneye/log}:/var/log/motioneye"
