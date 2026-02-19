@@ -1,0 +1,13 @@
+---
+services:
+  motioneye:
+    image: ${MOTIONEYE_IMAGE:-ccrisan/motioneye:master-armhf}
+    container_name: ${MOTIONEYE_CONTAINER_NAME:-motioneye}
+    hostname: ${MOTIONEYE_HOSTNAME:-motioneye}
+    restart: ${MOTIONEYE_RESTART:-unless-stopped}
+    ports:
+      - "${MOTIONEYE_PORT:-8765}:8765/tcp"
+    volumes:
+      - "${MOTIONEYE_LOCALTIME_BIND:-/etc/localtime}:/etc/localtime:ro"
+      - "${MOTIONEYE_CONFIG_DIR:-./motioneye/config}:/etc/motioneye"
+      - "${MOTIONEYE_DATA_DIR:-./motioneye/data}:/var/lib/motioneye"
