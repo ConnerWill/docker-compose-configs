@@ -8,20 +8,39 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
+      ## All
       - TZ=${TZ:-America/Chicago}
-      - VPN_SERVICE_PROVIDER=mullvad
-      - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
-      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+
+      ## Gluetun
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - FIREWALL_INPUT_PORTS=${FIREWALL_INPUT_PORTS:-7878,8989,9696,8686,8080,8191}  # Allow inbound access to published ports from LAN
+      # - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}  # Only needed if VPN'd containers must reach LAN services
+
+      ## Mullvad
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER:-mullvad}
+      - VPN_TYPE=${VPN_TYPE:-wireguard}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY:?Wireguard private key is required}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES:?Wireguard addresses are required}
       - SERVER_CITIES=${SERVER_CITIES:-Toronto}
 
-      # Allow inbound access to published ports from LAN
-      - FIREWALL_INPUT_PORTS=${FIREWALL_INPUT_PORTS:-7878,8989,9696,8686,8080,8191}
+      ## Private Internet Access
+      # - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER:-private internet access}
+      # - OPENVPN_USER=${OPENVPN_USER:?OpenVPN user is required}
+      # - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?OpenVPN password is required}
+      # - SERVER_REGIONS=${SERVER_REGIONS:-Netherlands}
+      # - PORT_FORWARD_ONLY=${PORT_FORWARD_ONLY:-true}
+      # - PRIVATE_INTERNET_ACCESS_OPENVPN_ENCRYPTION_PRESET=${PRIVATE_INTERNET_ACCESS_OPENVPN_ENCRYPTION_PRESET:-strong}
+      # - VPN_PORT_FORWARDING=${VPN_PORT_FORWARDING:-on}
 
-      # Only needed if VPN'd containers must reach LAN services
-      # - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}
+      ## AirVPN
+      # - VPN_TYPE=${VPN_TYPE:-wireguard}
+      # - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY:?Wireguard private key is required}
+      # - WIREGUARD_PRESHARED_KEY=${WIREGUARD_PRESHARED_KEY:?Wireguard preshared key is required}
+      # - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES:?Wireguard addresses are required}
+      # - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Canada}
+      # - SERVER_CITIES=${SERVER_CITIES:-Toronto}
+      # - SERVER_REGIONS=${SERVER_REGIONS:?Server regions not set}
 
-      - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
     volumes:
       - gluetun:/gluetun
     ports:
@@ -31,6 +50,17 @@ services:
       - "8686:8686/tcp"  # Lidarr UI/API
       - "8080:8080/tcp"  # qBittorrent Web UI (optional; remove if you don't want it exposed)
       - "8191:8191/tcp"  # FlareSolverr
+    ## Optional: pin DNS to avoid “host not found” tracker failures
+    # dns:
+    #   - 1.1.1.1
+    #   - 1.0.0.1
+    healthcheck:
+      # TODO: Confirm wget exists on gluetun image and this does not fail
+      test: ["CMD-SHELL", "wget -qO- https://ipinfo.io/ip >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 
   qbittorrent:
@@ -46,6 +76,9 @@ services:
       - qbittorrent_config:/config
       - ${DOWNLOADS_ROOT}:/downloads
     restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -61,6 +94,9 @@ services:
       - ${MEDIA_ROOT}/documentaries:/documentaries
       - ${DOWNLOADS_ROOT}:/downloads
     restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -76,6 +112,9 @@ services:
       - ${MEDIA_ROOT}/documentaries:/documentaries
       - ${DOWNLOADS_ROOT}:/downloads
     restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
   lidarr:
     image: lscr.io/linuxserver/lidarr:latest
@@ -90,6 +129,9 @@ services:
       - ${MEDIA_ROOT}/music:/music
       - ${DOWNLOADS_ROOT}:/downloads
     restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -102,6 +144,9 @@ services:
     volumes:
       - prowlarr_config:/config
     restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -109,9 +154,11 @@ services:
     network_mode: "service:gluetun"
     environment:
       - TZ=${TZ:-America/Chicago}
-      # Optional: can help with debugging
-      # - LOG_LEVEL=${FLARESOLVERR_LOG_LEVEL:-info}
+      # - LOG_LEVEL=${LOG_LEVEL:-info}
     restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
 volumes:
   gluetun:
