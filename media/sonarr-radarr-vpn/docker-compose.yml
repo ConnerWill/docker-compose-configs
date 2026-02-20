@@ -12,7 +12,7 @@ services:
       - TZ=${TZ:-America/Chicago}
 
       ## Gluetun
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
       - FIREWALL_INPUT_PORTS=${FIREWALL_INPUT_PORTS:-7878,8989,9696,8686,8080,8191}  # Allow inbound access to published ports from LAN
       # - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}  # Only needed if VPN'd containers must reach LAN services
 
@@ -45,11 +45,12 @@ services:
       - gluetun:/gluetun
     ports:
       - "7878:7878/tcp"  # Radarr UI/API
-      - "8989:8989/tcp"  # Sonarr UI/API
-      - "9696:9696/tcp"  # Prowlarr UI/API
-      - "8686:8686/tcp"  # Lidarr UI/API
       - "8080:8080/tcp"  # qBittorrent Web UI (optional; remove if you don't want it exposed)
       - "8191:8191/tcp"  # FlareSolverr
+      - "8686:8686/tcp"  # Lidarr UI/API
+      - "8988:8000/tcp"  # Tunarr UI/API
+      - "8989:8989/tcp"  # Sonarr UI/API
+      - "9696:9696/tcp"  # Prowlarr UI/API
     ## Optional: pin DNS to avoid “host not found” tracker failures
     # dns:
     #   - 1.1.1.1
@@ -154,16 +155,35 @@ services:
     network_mode: "service:gluetun"
     environment:
       - TZ=${TZ:-America/Chicago}
-      # - LOG_LEVEL=${LOG_LEVEL:-info}
+      # - LOG_LEVEL=${FLARESOLVERR_LOG_LEVEL:-info}
     restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
+
+  tunarr:
+    image: ghcr.io/chrisbenincasa/tunarr:1.1.15
+    container_name: tunarr
+    # TODO: Confirm we want to go through gluetun
+    # ports:
+    #   - ${TUNARR_SERVER_PORT:-8988}:8000
+    network_mode: "service_gluetun"  # TODO: Confirm we want to go through gluetun
+    environment:
+      - TZ=${TZ:-America/Chicago}
+      - LOG_LEVEL=${TUNARR_LOG_LEVEL:-INFO}
+    volumes:
+      - tunarr_config:/config/tunarr
+    restart: unless-stopped
+    # TODO: Confirm we want to go through gluetun
     depends_on:
       gluetun:
         condition: service_healthy
 
 volumes:
   gluetun:
+  lidarr_config:
+  prowlarr_config:
   qbittorrent_config:
   radarr_config:
   sonarr_config:
-  prowlarr_config:
-  lidarr_config:
+  tunarr_config:
