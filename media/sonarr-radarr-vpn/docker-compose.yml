@@ -14,8 +14,13 @@ services:
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
       - SERVER_CITIES=${SERVER_CITIES:-Toronto}
-      - FIREWALL_INPUT_PORTS=${FIREWALL_INPUT_PORTS:-7878,8989,9696,8686,8080}  # Allow inbound access to published ports from LAN
-      # - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}  # Only needed if VPN'd containers must reach LAN services
+
+      # Allow inbound access to published ports from LAN
+      - FIREWALL_INPUT_PORTS=${FIREWALL_INPUT_PORTS:-7878,8989,9696,8686,8080,8191}
+
+      # Only needed if VPN'd containers must reach LAN services
+      # - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}
+
       - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
     volumes:
       - gluetun:/gluetun
@@ -25,6 +30,7 @@ services:
       - "9696:9696/tcp"  # Prowlarr UI/API
       - "8686:8686/tcp"  # Lidarr UI/API
       - "8080:8080/tcp"  # qBittorrent Web UI (optional; remove if you don't want it exposed)
+      - "8191:8191/tcp"  # FlareSolverr
     restart: unless-stopped
 
   qbittorrent:
@@ -95,6 +101,16 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - prowlarr_config:/config
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    network_mode: "service:gluetun"
+    environment:
+      - TZ=${TZ:-America/Chicago}
+      # Optional: can help with debugging
+      # - LOG_LEVEL=${FLARESOLVERR_LOG_LEVEL:-info}
     restart: unless-stopped
 
 volumes:
