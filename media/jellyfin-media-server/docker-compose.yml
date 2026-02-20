@@ -59,6 +59,8 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # https://tunarr.com/getting-started/setup/
+  # https://tunarr.com/configure/clients/jellyfin/
   tunarr:
     image: ${TUNARR_IMAGE:-ghcr.io/chrisbenincasa/tunarr}:${TUNARR_IMAGE_VERSION:-1.1.15}
     container_name: ${TUNARR_NAME:-tunarr}
