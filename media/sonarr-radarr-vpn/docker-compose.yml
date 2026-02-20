@@ -12,7 +12,7 @@ services:
       - TZ=${TZ:-America/Chicago}
 
       ## Gluetun
-      - LOG_LEVEL=${GLUETUN_LOG_LEVEL:-info}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
       - FIREWALL_INPUT_PORTS=${FIREWALL_INPUT_PORTS:-7878,8989,9696,8686,8080,8191}  # Allow inbound access to published ports from LAN
       # - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS:-192.168.0.0/24}  # Only needed if VPN'd containers must reach LAN services
 
@@ -155,7 +155,7 @@ services:
     network_mode: "service:gluetun"
     environment:
       - TZ=${TZ:-America/Chicago}
-      # - LOG_LEVEL=${FLARESOLVERR_LOG_LEVEL:-info}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     restart: unless-stopped
     depends_on:
       gluetun:
@@ -170,7 +170,7 @@ services:
     network_mode: "service_gluetun"  # TODO: Confirm we want to go through gluetun
     environment:
       - TZ=${TZ:-America/Chicago}
-      - LOG_LEVEL=${TUNARR_LOG_LEVEL:-INFO}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - tunarr_config:/config/tunarr
     restart: unless-stopped
