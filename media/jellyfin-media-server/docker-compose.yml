@@ -2,23 +2,26 @@
 
 services:
   jellyfin:
-    image: ${JELLYFIN_IMAGE}:${JELLYFIN_IMAGE_VERSION}
-    container_name: ${JELLYFIN_NAME}
-    hostname: ${JELLYFIN_NAME}
+    image: ${JELLYFIN_IMAGE:-jellyfin/jellyfin}:${JELLYFIN_IMAGE_VERSION:-latest}
+    container_name: ${JELLYFIN_NAME:-jellyfin}
+    hostname: ${JELLYFIN_NAME:-jellyfin}
+    #TODO: Confirm this is correct
+    #user: ${PUID:-1000}:${PGID:-1000}
     network_mode: host
+    ports:
+      - ${JELLYFIN_PORT:-8096}:8096/tcp
+      - ${JELLYFIN_DISCOVERY_PORT:-7359}:7359/udp
     restart: unless-stopped
     environment:
-      - TZ=${TZ}
-    # Optional - may be necessary for docker healthcheck to pass if running in host network mode
+      - TZ=${TZ:-America/Chicago}
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:
-      - ${JELLYFIN_CONFIG}:/config
-      - ${JELLYFIN_CACHE}:/cache
-      - ${JELLYFIN_MEDIA}:/media
+      - ${JELLYFIN_CONFIG:-/opt/jellyfin/config-dir}:/config
+      - ${JELLYFIN_CACHE:-/opt/jellyfin/cache-dir}:/cache
+      - ${JELLYFIN_MEDIA:-/media}:/media
     healthcheck:
-      # TODO: Confirm '/health' works as expected: https://jellyfin.org/docs/general/post-install/networking/advanced/monitoring
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${JELLYFIN_PORT}/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${JELLYFIN_PORT:-8096}/health || exit 1"]
       interval: 30s
       retries: 3
       start_period: 20s
@@ -30,23 +33,23 @@ services:
         max-file: "3"
 
   jellyseerr:
-    image: ${JELLYSEERR_IMAGE}:${JELLYSEERR_IMAGE_VERSION}
-    container_name: ${JELLYSEERR_NAME}
-    hostname: ${JELLYSEERR_NAME}
+    image: ${JELLYSEERR_IMAGE:-fallenbagel/jellyseerr}:${JELLYSEERR_IMAGE_VERSION:-latest}
+    container_name: ${JELLYSEERR_NAME:-jellyseerr}
+    hostname: ${JELLYSEERR_NAME:-jellyseerr}
     restart: unless-stopped
     depends_on:
       jellyfin:
         condition: service_healthy
     environment:
-      - LOG_LEVEL=${JELLYSEERR_LOG_LEVEL}
-      - TZ=${TZ}
-      - PORT=${JELLYSEERR_PORT}
+      - LOG_LEVEL=${JELLYSEERR_LOG_LEVEL:-info}
+      - TZ=${TZ:-America/Chicago}
+      - PORT=${JELLYSEERR_PORT:-5055}
     ports:
-      - "${JELLYSEERR_PORT}:${JELLYSEERR_PORT}"
+      - "${JELLYSEERR_PORT:-5055}:${JELLYSEERR_PORT:-5055}"
     volumes:
-      - ${JELLYSEERR_CONFIG}:/app/config
+      - ${JELLYSEERR_CONFIG:-/opt/jellyseerr/config}:/app/config
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:${JELLYSEERR_PORT}/api/v1/status || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:${JELLYSEERR_PORT:-5055}/api/v1/status || exit 1"]
       interval: 15s
       retries: 3
       start_period: 30s
@@ -56,3 +59,19 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  tunarr:
+    image: ${TUNARR_IMAGE:-ghcr.io/chrisbenincasa/tunarr}:${TUNARR_IMAGE_VERSION:-1.1.15}
+    container_name: ${TUNARR_NAME:-tunarr}
+    hostname: ${TUNARR_NAME:-tunarr}
+    ports:
+      - ${TUNARR_SERVER_PORT:-8988}:8000
+    environment:
+      - TZ=${TZ:-America/Chicago}
+      - LOG_LEVEL=${TUNARR_LOG_LEVEL:-info}
+    volumes:
+      - ${TUNARR_CONFIG:-/opt/tunarr/config}:/config/tunarr
+    restart: unless-stopped
+    depends_on:
+      jellyfin:
+        condition: service_healthy
