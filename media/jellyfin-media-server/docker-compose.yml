@@ -5,12 +5,9 @@ services:
     image: ${JELLYFIN_IMAGE:-jellyfin/jellyfin}:${JELLYFIN_IMAGE_VERSION:-latest}
     container_name: ${JELLYFIN_NAME:-jellyfin}
     hostname: ${JELLYFIN_NAME:-jellyfin}
-    #TODO: Confirm this is correct
-    #user: ${PUID:-1000}:${PGID:-1000}
+    # TODO: Confirm this is correct
+    # user: ${PUID:-1000}:${PGID:-1000}
     network_mode: host
-    ports:
-      - ${JELLYFIN_PORT:-8096}:8096/tcp
-      - ${JELLYFIN_DISCOVERY_PORT:-7359}:7359/udp
     restart: unless-stopped
     environment:
       - TZ=${TZ:-America/Chicago}
@@ -46,6 +43,8 @@ services:
       - PORT=${JELLYSEERR_PORT:-5055}
     ports:
       - "${JELLYSEERR_PORT:-5055}:${JELLYSEERR_PORT:-5055}"
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - ${JELLYSEERR_CONFIG:-/opt/jellyseerr/config}:/app/config
     healthcheck:
@@ -66,6 +65,8 @@ services:
     hostname: ${TUNARR_NAME:-tunarr}
     ports:
       - ${TUNARR_SERVER_PORT:-8988}:8000
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     environment:
       - TZ=${TZ:-America/Chicago}
       - LOG_LEVEL=${TUNARR_LOG_LEVEL:-info}
