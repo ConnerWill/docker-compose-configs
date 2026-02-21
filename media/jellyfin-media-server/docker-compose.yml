@@ -29,35 +29,35 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  jellyseerr:
-    image: ${JELLYSEERR_IMAGE:-fallenbagel/jellyseerr}:${JELLYSEERR_IMAGE_VERSION:-latest}
-    container_name: ${JELLYSEERR_NAME:-jellyseerr}
-    hostname: ${JELLYSEERR_NAME:-jellyseerr}
-    restart: unless-stopped
-    depends_on:
-      jellyfin:
-        condition: service_healthy
-    environment:
-      - LOG_LEVEL=${JELLYSEERR_LOG_LEVEL:-info}
-      - TZ=${TZ:-America/Chicago}
-      - PORT=${JELLYSEERR_PORT:-5055}
-    ports:
-      - "${JELLYSEERR_PORT:-5055}:${JELLYSEERR_PORT:-5055}"
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    volumes:
-      - ${JELLYSEERR_CONFIG:-/opt/jellyseerr/config}:/app/config
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:${JELLYSEERR_PORT:-5055}/api/v1/status || exit 1"]
-      interval: 15s
-      retries: 3
-      start_period: 30s
-      timeout: 3s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # jellyseerr:
+  #   image: ${JELLYSEERR_IMAGE:-fallenbagel/jellyseerr}:${JELLYSEERR_IMAGE_VERSION:-latest}
+  #   container_name: ${JELLYSEERR_NAME:-jellyseerr}
+  #   hostname: ${JELLYSEERR_NAME:-jellyseerr}
+  #   restart: unless-stopped
+  #   depends_on:
+  #     jellyfin:
+  #       condition: service_healthy
+  #   environment:
+  #     - LOG_LEVEL=${JELLYSEERR_LOG_LEVEL:-info}
+  #     - TZ=${TZ:-America/Chicago}
+  #     - PORT=${JELLYSEERR_PORT:-5055}
+  #   ports:
+  #     - "${JELLYSEERR_PORT:-5055}:${JELLYSEERR_PORT:-5055}"
+  #   extra_hosts:
+  #     - 'host.docker.internal:host-gateway'
+  #   volumes:
+  #     - ${JELLYSEERR_CONFIG:-/opt/jellyseerr/config}:/app/config
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:${JELLYSEERR_PORT:-5055}/api/v1/status || exit 1"]
+  #     interval: 15s
+  #     retries: 3
+  #     start_period: 30s
+  #     timeout: 3s
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
   # https://tunarr.com/getting-started/setup/
   # https://tunarr.com/configure/clients/jellyfin/
