@@ -13,12 +13,31 @@ services:
     volumes:
       - mealie-data:/app/data/
     environment:
-      # Set Backend ENV Variables Here
-      ALLOW_SIGNUP: ${ALLOW_SIGNUP:-false}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
       TZ: ${TZ:-America/Chicago}
+      DB_ENGINE: ${DB_ENGINE:-sqlite}
       #BASE_URL: https://mealie.yourdomain.com
+      ALLOW_SIGNUP: ${ALLOW_SIGNUP:-false}
+      TOKEN_TIME: ${TOKEN_TIME:-9000}
+      SECURITY_MAX_LOGIN_ATTEMPTS: ${SECURITY_MAX_LOGIN_ATTEMPTS:-5}
+      SECURITY_USER_LOCKOUT_TIME: ${SECURITY_USER_LOCKOUT_TIME:-24}
+      ## Light mode colors
+      THEME_LIGHT_PRIMARY: '#5E9BD1'
+      THEME_LIGHT_ACCENT: '#A3C9E8'
+      THEME_LIGHT_SECONDARY: '#4F89BA'
+      THEME_LIGHT_SUCCESS: '#4CAF50'
+      THEME_LIGHT_INFO: '#4A9ED8'
+      THEME_LIGHT_WARNING: '#EAC46B'
+      THEME_LIGHT_ERROR: '#EF7373'
+      ## Dark mode colors
+      THEME_DARK_PRIMARY: '#2F2F2F'
+      THEME_DARK_ACCENT: '#7A00F1'
+      THEME_DARK_SECONDARY: '#FF2D96'
+      THEME_DARK_SUCCESS: '#09F774'
+      THEME_DARK_INFO: '#40A6F0'
+      THEME_DARK_WARNING: '#EBC82F'
+      THEME_DARK_ERROR: '#FF2200'
 
 volumes:
   mealie-data:
