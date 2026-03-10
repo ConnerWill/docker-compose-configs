@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="errorcontainer">
+        <div class="funni">
+            {% block funni %}
+            {% endblock funni %}
+        </div>
+        <h1>
+            HTTP
+            {% block error_code %}
+            {% endblock error_code %}
+        </h1>
+        <h2>
+            {% block subtitle %}
+            {% endblock subtitle %}
+        </h2>
+        {% block error_desc %}
+        {% endblock error_desc %}
+        {% block button %}
+            <a href="{% url 'landing' %}" class="bigbutton">
+                <p>Take me back to safety!</p>
+            </a>
+        {% endblock button %}
+    </div>
+{% endblock content %}

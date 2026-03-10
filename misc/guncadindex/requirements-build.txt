@@ -1,0 +1,11 @@
+# vim:set ft=requirements:
+# Unqualified because it's a linter idgaf
+isort					# Sorts imports
+djlint					# Lints Django templates
+black					# Lints Python code
+yamllint				# Lints all forms of YAML, incl. docker-compose
+pycln					# Removes unused imports
+scour					# Used for linting generated SVGs
+
+# Matrix shit
+matrix-nio				# Used to send Matrix notifications

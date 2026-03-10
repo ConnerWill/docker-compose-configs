@@ -1,0 +1,32 @@
+{% if request.GET.format == "list" %}
+    {% for object in items %}
+        <!--{% cycle "" "alt" as secondaryclass %}-->
+        {% if object.duplicate %}
+            {% include 'release.html' with linkurl=True duplicate=True %}
+        {% else %}
+            {% include 'release.html' with linkurl=True %}
+        {% endif %}
+    {% empty %}
+        <div class="helpblurb">
+            <h1>Nuffin</h1>
+            <p>We looked far and wide, but couldn't come up with anything. Sorry.</p>
+        </div>
+    {% endfor %}
+{% else %}
+    {% if not items %}
+        <div class="helpblurb">
+            <h1>Nuffin</h1>
+            <p>We looked far and wide, but couldn't come up with anything. Sorry.</p>
+        </div>
+    {% else %}
+        <div class="grid-view-max">
+            {% for object in items %}
+                {% if object.duplicate %}
+                    {% include 'release.html' with linkurl=True duplicate=True %}
+                {% else %}
+                    {% include 'release.html' with linkurl=True %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endif %}

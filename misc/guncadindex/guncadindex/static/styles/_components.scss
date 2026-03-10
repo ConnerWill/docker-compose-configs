@@ -1,0 +1,229 @@
+.section {
+  @include shadow;
+  background: $background-darker;
+  padding: 8px;
+  border-radius: 8px;
+}
+.favorite-toggle {
+  &.favorited {
+    color: $favorite;
+    &:hover {
+      color: $favorite-alt;
+    }
+  }
+}
+.vendor {
+  @include card;
+  min-width: 250px;
+  max-width: 250px;
+  box-shadow: none;
+
+  .vendor-head {
+    height: 128px;
+    padding: 1em 0;
+    img {
+      max-height: 128px;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0;
+      min-width: 64px;
+      background-color: transparent;
+      @include mobile {
+        min-width: unset;
+        max-height: 96px;
+      }
+    }
+    @include mobile {
+      height: 96px;
+    }
+  }
+  .description {
+    max-width: 500px;
+    @include mobile {
+      display: none !important;
+    }
+  }
+  .referralcode {
+    padding: 1em;
+    margin: 0 auto;
+    border-radius: 8px;
+    background: var(--background-darker);
+  }
+
+  @include mobile {
+    min-width: 180px;
+    max-width: 180px;
+  }
+}
+.favorite-indicator {
+  display: none;
+  &.favorited {
+    color: $favorite;
+    display: unset;
+  }
+}
+#favorites {
+  display: none;
+  &:has(.favorites-populated) {
+    display: unset;
+  }
+  .favorite-clear {
+    color: $negative;
+    &:hover {
+      color: $negative-alt;
+    }
+  }
+}
+.lemmy-post {
+  @include card;
+  @include flex($direction: row, $grow: 1);
+  box-shadow: none;
+  color: $foreground;
+  .title {
+    font-weight: bold;
+    overflow: hidden;
+    border-bottom: 1px solid $trim;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    margin-bottom: 0.25em;
+    @include mobile {
+      -webkit-line-clamp: 2;
+    }
+  }
+  .thumbnail-wrapper {
+    @include flex($direction: column, $gap: 0);
+    @include shadow;
+    background: $background-darker;
+    text-align: center;
+  }
+  .thumbnail {
+    @include shadow;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  .stats {
+    @include flex($direction: row, $justify: center);
+    font-size: 95%;
+    padding: $padding;
+  }
+  .description {
+    @include flex($direction: column, $gap: 0);
+  }
+  .meta {
+    font-size: 75%;
+  }
+}
+.textbox {
+  @include shadow;
+  background: $background-darker;
+  padding: $padding-medium;
+  border-radius: $border-radius;
+  &.text-small {
+    font-size: 80%;
+  }
+}
+.md {
+  // Fixes flexbox overflow problems
+  min-width: 0;
+  p {
+    margin: 0 0 0.5em 0;
+  }
+  code:not(pre code) {
+    background: $background-brighter;
+    border: 2px solid $trim;
+    border-radius: $border-radius;
+    padding: $padding;
+  }
+  pre {
+    background: $background-brighter;
+    border: 2px solid $trim;
+    border-radius: $border-radius;
+    padding: $padding-fat;
+    overflow-x: auto;
+    max-width: 100%;
+    white-space: pre;
+    word-wrap: normal;
+  }
+}
+.buttonlinks {
+  @include flex($direction: column, $grow: 1);
+  @include mobile {
+    padding: 0.5em;
+  }
+
+  border-radius: $border-radius;
+  padding: 1em;
+  background: $background-darker;
+  box-shadow: $shadow;
+
+  .buttonsection {
+    @include flex($direction: column, $justify: left, $grow: 1, $align: stretch);
+    @include mobile {
+      gap: 4px;
+    }
+  }
+  .heading {
+    font-weight: bold;
+    display: block;
+  }
+  .button {
+    @include flex($direction: row, $grow: 0, $block: inline-flex, $align: center, $justify: center);
+    @include mobile {
+      justify-content: center;
+      flex-grow: 1;
+    }
+
+    color: $foreground-relative;
+    background: $primary;
+    border-radius: $border-radius;
+    box-shadow: $shadow;
+    font-weight: bold;
+    padding: 1em;
+    margin: 0.25em;
+
+    &a:hover {
+      background: $primary-alt;
+    }
+    &.download-disabled {
+      background: $background-brighter;
+      border: 2px solid transparent;
+      &:hover {
+        background: $background-brighter;
+        border: 2px solid transparent;
+      }
+    }
+    &.odysee {
+      background: $brand-odysee;
+      border: 2px solid $brand-odysee;
+      &:hover {
+        background: $brand-odysee-alt;
+        border: 2px solid $brand-odysee-alt;
+      }
+    }
+    &.lbry {
+      background: $brand-lbry;
+      border: 2px solid $brand-lbry;
+      &:hover {
+        background: $brand-lbry-alt;
+        border: 2px solid $brand-lbry-alt
+      }
+    }
+    &.thin {
+      font-weight: normal;
+      padding: 0.75em 1em;
+    }
+    &.slim {
+      padding: 0.5em;
+    }
+    &.understated {
+      background: transparent;
+      border: 2px solid $primary;
+      font-weight: normal;
+      &:hover {
+        background: $background-brighter;
+        border: 2px solid $primary-alt;
+      }
+    }
+  }
+}

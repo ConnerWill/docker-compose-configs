@@ -1,0 +1,24 @@
+{% load settings static outify markdownify %}
+<a class="vendor text-tiny text-centered flex vertical"
+   title="{{ vendor.name }} sponsor link"
+   href="{{ vendor.homepage|outify }}"
+   rel="sponsored"
+   target="_blank">
+    <div class="vendor-head">
+        {% if vendor.logo %}
+            <img alt="{{ vendor.name }} logo" src="{{ vendor.logo.url }}" />
+        {% else %}
+            <span class="text-huge text-bold">{{ vendor.name }}</span>
+        {% endif %}
+    </div>
+    <span class="referralcode flex vertical gap-narrow no-grow">
+        {% if vendor.referralcode %}
+            <span>Use referral code:</span>
+            <span class="text-bold text-bigger monospace">{{ vendor.referralcode }}</span>
+        {% else %}
+            <span>Click here to use thier</span>
+            <span class="text-bold text-bigger">Referral link</span>
+        {% endif %}
+    </span>
+    {% if vendor.description %}<div class="description">{{ vendor.description|safe }}</div>{% endif %}
+</a>

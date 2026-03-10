@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load settings %}
+{% block og_title %}
+    {% settings_value 'GUNCAD_SITE_NAME' %}
+    - Tools
+{% endblock og_title %}
+{% block title %}
+    Tools
+{% endblock title %}
+{% block content %}
+    <div class="subcontainer">
+        {% if user.is_authenticated %}
+            <div class="helpblurb">
+                <h1>Welcome, {{ user.get_username }}</h1>
+                <p>
+                    If you need to manage your account, log out, or do something not listed here, visit the admin link in the footer.
+                </p>
+            </div>
+        {% endif %}
+        <h1>Staff Tools</h1>
+        <p>Select one of the tools below.</p>
+        <div class="three-column-grid">
+            <a class="bigbutton" href="{% url "tools-votes" %}">
+                <h1>View Pending Votes</h1>
+                <p>See what tags people think need applied and where.</p>
+            </a>
+            <a class="bigbutton" href="{% url "tools-csstest" %}">
+                <h1>CSS Test</h1>
+                <p>Test out styling and all that jazz</p>
+            </a>
+        </div>
+    </div>
+{% endblock content %}

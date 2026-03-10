@@ -1,0 +1,99 @@
+{% load static settings release_silly %}
+{# Holiday shit #}
+{% now "n-j" as today %}
+{% now "n" as month %}
+{% if today == "2-14" %}
+    {# Valentine's Day #}
+    <style>
+			:root {
+				--primary: #bd2d58;
+				--primary-alt: #de5b82;
+			}
+    </style>
+{% elif today == "3-8" %}
+    {# The launch date of the website #}
+    <style>
+			:root {
+				--primary: #7b37a6;
+				--primary-alt: #a466cc;
+			}
+    </style>
+{% elif today == "3-14" %}
+    {# Pi Day #}
+    <style>
+			.listview-item, .listview-item img, .tag {
+				border-radius: 50% !important;
+			}
+			a.logocontainer p {
+				content: "Fuck you, circles" !important;
+			}
+    </style>
+{% elif today == "4-1" %}
+    {# Ehehehe #}
+    <style>
+			:root {
+				--font-family: "Comic Neue", "Comic Sans", sans-serif;
+				--foreground-relative: rgba(0,0,0,0.9);
+				--foreground: #242424;
+				--foreground-dark: rgba(255,255,255,0.85);
+				--background-bright: #c5c5c5;
+				--background: #d5d5d5;
+				--background-dark: #e5e5e5;
+				--trim: #24242444;
+				--background-brighter: rgba(0,0,0,0.05);
+				--background-darker: rgba(255,255,255,0.15);
+			}
+			img.logo {
+				background: var(--foreground);
+				filter: invert(100%);
+			}
+			div#bgwrapper {
+				background-image: url("/static/silly/flashbang.webp");
+			}
+			div.searchform div.protip {
+				color: rgba(0,0,0,0.60);
+			}
+    </style>
+{% elif today == "7-4" %}
+    {# Fuck Yeah, America #}
+    <style>
+			:root {
+				--primary: #b22234;
+				--primary-alt: #e3364b;
+			}
+			img.logo {
+				/*
+					I love hate this so much
+
+					When we filter with invert(), we invert the white logo to black,
+					but we also invert the background. So to fix that, we just stuff
+					some precomputed inverted colors in place here so that they
+					un-invert later on when the filter is applied.
+
+					So dumb.
+				*/
+				background: linear-gradient(45deg, cyan, black, yellow) !important;
+				filter: invert(100%);
+			}
+			div#bgwrapper {
+				background-image: url("/static/silly/freedom.gif");
+				animation: none !important;
+			}
+    </style>
+{% elif today == "10-29" or today == "10-30" or today == "10-31" %}
+    {# Spoopy Day #}
+    <style>
+			:root {
+				--primary: #eb741a;
+				--primary-alt: #e6a777;
+			}
+    </style>
+{% elif month == "12" %}
+    {# Merry Christmas! #}
+    <style>
+			:root {
+				--primary: #a11d1d;
+				--primary-alt: #c24a4a;
+			}
+    </style>
+{% endif %}

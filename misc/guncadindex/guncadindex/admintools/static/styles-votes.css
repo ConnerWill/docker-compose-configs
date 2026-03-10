@@ -1,0 +1,52 @@
+:root {
+	--upvote: #5eb814;
+	--upvote-hover: #87c951;
+	--downvote: #e88e7d;
+	--downvote-hover: #e8ada2;
+}
+div.vote-meta {
+	padding: 8px;
+	border-radius: 8px;
+	background: var(--background-darker);
+}
+div.vote-meta div.meta {
+	font-size: 80%;
+}
+.vote-neutral {
+	border-radius: 8px;
+	padding: 8px;
+	background: var(--background-brighter);
+}
+.vote-add {
+	border-radius: 8px;
+	padding: 8px;
+	background: var(--upvote-hover);
+	color: var(--background);
+}
+.vote-delete {
+	border-radius: 8px;
+	padding: 8px;
+	background: var(--downvote-hover);
+	color: var(--background);
+}
+button.votebutton {
+	color: var(--foreground);
+	border-radius: 8px;
+	background: var(--background-brighter);
+	border: none;
+	padding: 0.25em;
+	font-size: 125%;
+	flex-grow: 1;
+	transition: .04s ease-in;
+}
+button.votebutton:hover {
+	cursor: pointer;
+}
+button.accept:hover {
+	color: var(--upvote);
+	background-color: var(--upvote-hover);
+}
+button.reject:hover {
+	color: var(--downvote);
+	background-color: var(--downvote-hover);
+}

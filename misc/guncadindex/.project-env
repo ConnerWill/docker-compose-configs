@@ -1,0 +1,3 @@
+# This file can be sourced in once navigating to the project directory to
+# instantiate basic dependencies.
+[ -f venv/bin/activate ] && . venv/bin/activate

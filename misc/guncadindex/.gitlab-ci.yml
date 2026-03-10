@@ -1,0 +1,320 @@
+---
+image: ubuntu:latest
+stages:
+  - Git Tag
+  - Scan Early
+  - Test
+  - Build
+  - Scan
+  - Release
+  - Release Notes
+before_script:
+  - apt-get update && apt-get install -y curl git postgresql-client python3 python3-venv
+variables:
+  REGISTRY: registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  IMAGE_TARBALL: container-$CI_COMMIT_SHORT_SHA.tar
+  IMAGE_TAG: $REGISTRY:$CI_COMMIT_SHORT_SHA
+  IMAGE_TAG_RELEASE: $REGISTRY:$CI_COMMIT_TAG
+  IMAGE_TAG_BLEEDING: $REGISTRY:bleeding
+  IMAGE_TAG_LATEST: $REGISTRY:latest
+  POSTGRES_USER: django
+  POSTGRES_PASSWORD: thisisjustforci
+  POSTGRES_DB: django
+  GUNCAD_DB_USER: django
+  GUNCAD_DB_PASS: thisisjustforci
+  GUNCAD_DB_NAME: django
+  GUNCAD_DB_HOST: db
+  GUNCAD_CACHE_BACKEND: valkey
+  PGPASSWORD: thisisjustforci
+default:
+  interruptible: yes
+  retry: 2
+  services:
+    - name: docker:dind
+      alias: docker
+      command: ["--tls=false"]
+    - name: postgres:14
+      alias: db
+  cache:
+    - key: cache-venv-$CI_COMMIT_REF_SLUG
+      paths:
+        - venv
+    - key: trivy-db
+      paths:
+        - .trivy
+# Automatic git tagging, used for cutting releases
+Apply Git Tag:
+  interruptible: no
+  stage: Git Tag
+  allow_failure: true
+  retry: 0
+  cache: []
+  before_script:
+    - apt-get update
+    - apt-get install -y git
+  # This is the suggested regex for semver, modified slightly
+  # https://semver.org/
+  # Should populate VERSION with 1.1.1 or similar
+  script:
+    - VERSION="$(head CHANGELOG.md -n 1 | grep -Pm1 '^# (?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$' | cut -d' ' -f2)"
+    - TAG_EXISTS="$(git tag -l "$VERSION")"
+    - |
+      if [ -z "$VERSION" ]; then
+        echo "No release detected at top of CHANGELOG.md"
+      elif ! git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
+        echo "Tagging version: $VERSION"
+        git remote set-url origin https://gitlab-ci-token:${CI_PUSH_TOKEN}@gitlab.com/guncad-index/index
+        git config user.name "GunCAD Index CI Bot"
+        git config user.email "shittinator@guncadindex.com"
+        awk "/^# $VERSION/{flag=1; next} /^# /{flag=0} flag" CHANGELOG.md > changelog_section.txt
+        git tag -a "$VERSION" -F changelog_section.txt
+        git push origin "$VERSION"
+        rm changelog_section.txt
+      else
+        echo "Tag already exists -- will not clobber: $VERSION"
+      fi
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+# Lightweight scanning where we check for repo misconfigs
+Trivy Secrets:
+  image:
+    name: aquasec/trivy
+    entrypoint: [""]
+  stage: Scan Early
+  retry: 0
+  script:
+    - trivy fs
+        --exit-code 1
+        ./
+Trivy Misconfiguration:
+  image:
+    name: aquasec/trivy
+    entrypoint: [""]
+  stage: Scan Early
+  retry: 0
+  script:
+    - trivy config
+        --severity HIGH,CRITICAL
+        --exit-code 1
+        ./
+
+# Linting and preprocessing
+# All of these should be required for PRs and run on all branches
+Black:
+  stage: Test
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - python3 -m black --version
+    - python3 -m black --check .
+isort:
+  stage: Test
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - python3 -m isort --profile black --check-only .
+djLint:
+  stage: Test
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    # This one's fucked
+    # https://github.com/djlint/djLint/issues/1028
+    # Until djlint fixes that, we have this hack
+    - python3 -m djlint . --profile=django --exclude=venv --check
+Missing Migrations:
+  stage: Test
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - cd guncadindex
+    - python3 manage.py makemigrations --check --dry-run
+Migration Compatibility:
+  stage: Test
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - git fetch --unshallow || true
+    - cd guncadindex
+    - python3 manage.py lintmigrations
+System Check:
+  stage: Test
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - cd guncadindex
+    - python3 manage.py check
+YAML Lint:
+  stage: Test
+  image:
+    name: ghcr.io/google/yamlfmt:latest
+    entrypoint: [""]
+  cache: []
+  before_script:
+    - apk add git
+  script:
+    - echo "Formatting..."
+    - yamlfmt
+    - git diff --exit-code
+    - echo "Formatting complete"
+Django Tests:
+  stage: Test
+  services:
+    - name: docker.io/postgres:14
+      alias: db
+    - name: docker.io/valkey/valkey:8-alpine
+      alias: valkey
+    - name: registry.gitlab.com/guncad-index/index:latest
+      alias: lbrynet
+      command: ["lbrynet"]
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - cd guncadindex
+    - coverage run ./manage.py test
+    - coverage report
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+
+# Building
+Build Container:
+  image: docker:latest
+  cache: []
+  before_script: []
+  stage: Build
+  script:
+    # Basic Docker setup
+    - docker --version
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $REGISTRY
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    # Set up build environment
+    - docker buildx create --use
+    - docker buildx inspect --bootstrap
+    # Build the container
+    # ARM builds not supported right now, need to build lbrynet for that
+    - docker buildx build
+        --platform linux/amd64
+        --build-arg commit_sha=$CI_COMMIT_SHORT_SHA
+        --build-arg commit_tag=$CI_COMMIT_TAG
+        --tag=$IMAGE_TAG
+        --output type=oci,dest=$IMAGE_TARBALL
+        guncadindex
+    # Last-minute debug info
+    - docker images
+  artifacts:
+    paths:
+      - $IMAGE_TARBALL
+    expire_in: 1h
+
+# The real meaty scanning where we check for package vulns
+Scan Container:
+  image:
+    name: aquasec/trivy
+    entrypoint: [""]
+  stage: Scan
+  allow_failure: true
+  retry: 0
+  before_script:
+    - mkdir container
+    - tar xf $IMAGE_TARBALL -C container
+  script:
+    - trivy image
+        --input container
+        --platform linux/amd64
+        --scanners vuln,secret,misconfig
+        --severity HIGH,CRITICAL
+        --ignore-unfixed
+        --exit-code 1
+
+# OCI image tagging
+Tag SHA:
+  image:
+    name: quay.io/containers/skopeo:latest
+    entrypoint: [""]
+  interruptible: no
+  cache: []
+  before_script: []
+  stage: Release
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | skopeo login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - skopeo inspect oci-archive:$IMAGE_TARBALL
+    - skopeo copy --all oci-archive:$IMAGE_TARBALL docker://$IMAGE_TAG
+    - skopeo copy --all oci-archive:$IMAGE_TARBALL docker://$IMAGE_TAG_BLEEDING
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+Tag Release:
+  image:
+    name: quay.io/containers/skopeo:latest
+    entrypoint: [""]
+  interruptible: no
+  cache: []
+  before_script: []
+  stage: Release
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | skopeo login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - skopeo inspect oci-archive:$IMAGE_TARBALL
+    - skopeo copy --all oci-archive:$IMAGE_TARBALL docker://$IMAGE_TAG_RELEASE
+    - skopeo copy --all oci-archive:$IMAGE_TARBALL docker://$IMAGE_TAG_LATEST
+  rules:
+    - if: $CI_COMMIT_TAG
+# Release notes and stuff
+GitLab:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  interruptible: no
+  cache: []
+  before_script: []
+  stage: Release Notes
+  script:
+    - echo "Running release job..."
+  rules:
+    - if: $CI_COMMIT_TAG
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: "GunCAD Index - $CI_COMMIT_TAG"
+    description: $CI_COMMIT_TAG_MESSAGE
+Matrix:
+  interruptible: no
+  stage: Release Notes
+  variables:
+    MATRIX_USER: "@guncadindex-bot:matrix.org"
+    MATRIX_ROOM_ID: "!SrRyTQtsVLxIqCJcul:matrix.org"
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - python3 contrib/build/post_matrix.py
+  rules:
+    - if: $CI_COMMIT_TAG
+Lemmy:
+  interruptible: no
+  stage: Release Notes
+  variables:
+    LEMMY_INSTANCE: "https://forum.guncadindex.com"
+    LEMMY_USERNAME: "bot"
+    LEMMY_COMMUNITY: "guncadindex" # On this instance, this is the announcements comm
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip3 install --upgrade pip
+    - pip3 install --upgrade -r guncadindex/requirements.txt -r requirements-build.txt
+    - python3 contrib/build/post_lemmy.py
+  rules:
+    - if: $CI_COMMIT_TAG

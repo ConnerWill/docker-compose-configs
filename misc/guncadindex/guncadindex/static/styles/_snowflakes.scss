@@ -1,0 +1,46 @@
+/* Globals */
+$snowflake-count: 20;
+
+/* Keyframes */
+@keyframes snowflakes-fall {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(110vh); }
+}
+
+@keyframes snowflakes-shake {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(25px); }
+}
+
+.snowflake {
+  opacity: 35%;
+  position: fixed;
+  top: -10%;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+  pointer-events: none;
+  animation: snowflakes-shake 7.5s ease-in-out infinite;
+
+  .inner {
+    animation: snowflakes-fall 25s linear infinite;
+  }
+
+  @for $i from 1 through $snowflake-count {
+    &:nth-of-type(#{$i}) {
+      // spread evenly across 0–100%
+      $left: (($i - 1) / ($snowflake-count - 1)) * 100%;
+      left: $left;
+
+      // shake animation stagger
+      $shake-delay: ($i - 1) * 0.3s;
+      animation-delay: $shake-delay;
+
+      // fall animation stagger
+      $fall-delay: ($i - 1) * 0.5s;
+      .inner {
+        animation-delay: $fall-delay;
+      }
+    }
+  }
+}

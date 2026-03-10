@@ -1,0 +1,20 @@
+# vim:set ft=config:
+#
+# .trivyignore
+#
+# Every entry in this list should have its own, justified explanation for
+# why we're skipping it.
+#
+
+# AVD-DS-0002 (HIGH): Specify at least 1 USER command in Dockerfile with non-root user as argument
+# Skipped since we immediately pivot down from root in our startup script,
+# and starting as root allows us to sanity check more configuration.
+AVD-DS-0002
+DS-0002
+
+# AVD-DS-0029 (HIGH): '--no-install-recommends' flag is missed
+# I disagree that this is a vulnerability. Additionally, Trivy is not
+# intelligent about multi-stage builds where we might *want* the packages
+# recommended by APT.
+AVD-DS-0029
+DS-0029

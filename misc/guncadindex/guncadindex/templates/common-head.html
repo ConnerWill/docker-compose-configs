@@ -1,0 +1,36 @@
+{% load compress static settings %}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% compress css %}
+    <link rel="stylesheet"
+          type="text/x-scss"
+          href="{% static 'styles/main.scss' %}">
+{% endcompress %}
+<link rel="manifest"
+      href="{% static 'manifest.json' %}?cachebuster={% settings_value 'GUNCAD_COMMIT_REF' %}">
+<link rel="search"
+      type="application/opensearchdescription+xml"
+      title="{% settings_value 'GUNCAD_SITE_NAME' %}"
+      href="{% url 'opensearch.xml' %}">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% include 'styling.html' %}
+<link rel="icon"
+      type="image/x-icon"
+      href="{% static 'generated/favicon.ico' %}">
+<link rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="{% static 'generated/icon-32x32.png' %}">
+<link rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="{% static 'generated/icon-192x192.png' %}">
+<link rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="{% static 'generated/icon-512x512.png' %}">
+<noscript>
+    <style>.jsonly { display: none !important }</style>
+</noscript>
+{% include 'common-fonts.html' %}
+{% include 'common-scripts.html' %}

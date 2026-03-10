@@ -1,0 +1,39 @@
+{% if request.GET.sort == "random" %}
+    <div id="paginator">
+        <div id="paginator-previous"></div>
+        <div id="paginator-center">
+            <a class="paginatorbutton bigbutton" href="">Reroll</a>
+        </div>
+        <div id="paginator-right"></div>
+    </div>
+{% elif page_obj %}
+    <div id="paginator">
+        <div id="paginator-previous">
+            {% if page_obj.has_previous %}
+                <a id="page-first"
+                   href="?{% for key, values in request.GET.lists %}{% if key != 'page' %}{% for val in values %}{{ key|urlencode }}={{ val|urlencode }}&{% endfor %}{% endif %}{% endfor %}page=1">
+                    {% heroicon_outline "chevron-double-left" stroke_width=2 %}
+                </a>
+                <a id="page-prev"
+                   href="?{% for key, values in request.GET.lists %}{% if key != 'page' %}{% for val in values %}{{ key|urlencode }}={{ val|urlencode }}&{% endfor %}{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                    {% heroicon_outline "chevron-left" stroke_width=2 %}
+                </a>
+            {% endif %}
+        </div>
+        <div id="paginator-center">
+            <p>{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</p>
+        </div>
+        <div id="paginator-right">
+            {% if page_obj.has_next %}
+                <a id="page-next"
+                   href="?{% for key, values in request.GET.lists %}{% if key != 'page' %}{% for val in values %}{{ key|urlencode }}={{ val|urlencode }}&{% endfor %}{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                    {% heroicon_outline "chevron-right" stroke_width=2 %}
+                </a>
+                <a id="page-last"
+                   href="?{% for key, values in request.GET.lists %}{% if key != 'page' %}{% for val in values %}{{ key|urlencode }}={{ val|urlencode }}&{% endfor %}{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">
+                    {% heroicon_outline "chevron-double-right" stroke_width=2 %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

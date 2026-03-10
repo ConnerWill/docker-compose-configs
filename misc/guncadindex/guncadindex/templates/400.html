@@ -1,0 +1,15 @@
+{% extends "error.html" %}
+{% block funni %}
+    ?w?
+{% endblock funni %}
+{% block error_code %}
+    400
+{% endblock error_code %}
+{% block subtitle %}
+    I dunno what you did, but you fucked up
+{% endblock subtitle %}
+{% block error_desc %}
+    <p>
+        Your browser sent an invalid request. If you're trying to do funny automation things, check out <a href="{% url 'api-root' %}">the API</a> (and just issue GETs).
+    </p>
+{% endblock error_desc %}

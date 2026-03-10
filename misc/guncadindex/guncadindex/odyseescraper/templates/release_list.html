@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load settings %}
+{% block og_title %}
+    {% settings_value 'GUNCAD_SITE_NAME' %}
+    {% if request.GET.query %}
+        - Search for &quot;{{ request.GET.query }}&quot;
+    {% else %}
+        - Browse
+    {% endif %}
+{% endblock og_title %}
+{% block og_description %}
+    {% if request.GET.query %}
+        Browse {{ page_obj.paginator.count }} results
+    {% else %}
+        View all releases
+    {% endif %}
+{% endblock og_description %}
+{% block title %}
+    Search
+    {% if request.GET.query %}- "{{ request.GET.query }}"{% endif %}
+{% endblock title %}
+{% block extrahead %}
+    <link rel="alternate"
+          type="application/atom+xml"
+          title="Atom Feed for this search"
+          href="{% url 'listreleases-atom' %}?{{ request.GET.urlencode }}">
+    <script>
+			// This script just resubmits the form if you change the state of one of the formatting-related fields
+			// Can be blocked if you want
+			document.addEventListener('DOMContentLoaded', function () {
+				['sort', 'time', 'format'].forEach(id => {
+					document.getElementById(id)?.addEventListener('change', function () {
+						this.form?.requestSubmit?.();
+					});
+				});
+			});
+    </script>
+{% endblock extrahead %}
+{% block content %}
+    <div class="subcontainer">
+        {% include 'search_form.html' with value=request.GET.query placeholder=search_string protip=search_protip %}
+        <div id="snippet-target">{% include '_release_list_content.html' %}</div>
+    </div>
+{% endblock content %}

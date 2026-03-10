@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load settings %}
+{% block og_title %}
+    {% settings_value 'GUNCAD_SITE_NAME' %}
+    - Advanced Search
+{% endblock og_title %}
+{% block og_description %}
+    Look for very specific things using very specific filters
+{% endblock og_description %}
+{% block title %}
+    Advanced Search
+{% endblock title %}
+{% block content %}
+    <div class="subcontainer">
+        {% include 'search_form.html' with value=request.GET.query placeholder=search_string protip=search_protip advanced=True %}
+    </div>
+{% endblock content %}

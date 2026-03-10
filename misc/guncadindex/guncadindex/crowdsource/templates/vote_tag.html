@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load settings %}
+{% load static %}
+{% block styles %}
+    <link rel="stylesheet"
+          href="{% static 'styles-vote-form.css' %}?cachebuster={% settings_value 'GUNCAD_COMMIT_REF' %}">
+{% endblock styles %}
+{% block og_title %}
+    Voting on Tags for {{ object.name }}
+{% endblock og_title %}
+{% block og_description %}
+    {% settings_value 'GUNCAD_SITE_NAME' %}
+{% endblock og_description %}
+{% block og_image %}
+    {{ request.scheme }}://{{ request.get_host }}{{ object.thumbnail_small }}
+{% endblock og_image %}
+{% block title %}
+    Voting for Tags - {{ object.name }}
+{% endblock title %}
+{% block content %}
+    <div class="subcontainer">
+        <h1>Voting for tag changes</h1>
+        <p>Here's the item you were looking at:</p>
+        {% include 'release.html' with long=True %}
+        <form action="{% url 'votetag' pk=object.id %}" method="post">
+            {% csrf_token %}
+            <div class="two-column-grid">
+                <div>
+                    <h1>Add</h1>
+                    <p>What tags do you think should be added?</p>
+                    <div class="helpblurb border-positive">
+                        {% regroup unapplied_tags by category as categorized_unapplied_tags %}
+                        {% for category in categorized_unapplied_tags %}
+                            <div>
+                                <h2>{{ category.grouper.name }}</h2>
+                                <p>{{ category.grouper.description }}</p>
+                                {% for tag in category.list %}
+                                    <input id="{{ tag.id }}"
+                                           class="tagcheckbox"
+                                           type="checkbox"
+                                           name="add"
+                                           value="{{ tag.id }}">
+                                    <label for="{{ tag.id }}" class="label">{% include 'tag.html' %}</label>
+                                {% endfor %}
+                            </div>
+                        {% empty %}
+                            <p>No tags? You telling me this thing has EVERY tag in the whole fucking index?</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <h1>Remove</h1>
+                    <p>Which tags shouldn't be there?</p>
+                    <div class="helpblurb border-negative">
+                        {% regroup applied_tags by category as categorized_applied_tags %}
+                        {% for category in categorized_applied_tags %}
+                            <div>
+                                <h2>{{ category.grouper.name }}</h2>
+                                <p>{{ category.grouper.description }}</p>
+                                {% for tag in category.list %}
+                                    <input id="{{ tag.id }}"
+                                           class="tagcheckbox"
+                                           type="checkbox"
+                                           name="del"
+                                           value="{{ tag.id }}">
+                                    <label for="{{ tag.id }}" class="label">{% include 'tag.html' %}</label>
+                                {% endfor %}
+                            </div>
+                        {% empty %}
+                            <p>This release currently has no tags applied to it.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="searchform flex justify-center">
+                <button class="inputfield submitfield" id="submit" type="submit">Looks good, fuckin' send it bud!</button>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

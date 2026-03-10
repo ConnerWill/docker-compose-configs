@@ -1,0 +1,18 @@
+{% load settings static heroicons lemmy_filters %}
+<a class="lemmy-post"
+   href="{{ post.post.ap_id|lemmyverse_link }}"
+   title="{{ post.post.name }}">
+    {% static "no-image-lemmy.webp" as fallback_img %}
+    <img class="circle ar-1-1-by-width m-l-a m-r-a"
+         width="64"
+         height="64"
+         src="{{ post.post.thumbnail_url|default:fallback_img }}" />
+    <div class="description">
+        <span class="title">{{ post.post.name|truncatechars:160 }}</span>
+        <div class="meta">
+            {% heroicon_micro 'user' class="icon" %} {{ post.creator.display_name|default:post.creator.name|truncatechars:20 }} - {{ post.community.title|default:post.community.name|truncatechars:20 }}
+        </div>
+        <div class="meta">{% heroicon_micro 'arrow-up' class="icon" %} {{ post.counts.score }} points</div>
+        <div class="meta">{% heroicon_micro 'chat-bubble-oval-left' class="icon" %} {{ post.counts.comments }} comments</div>
+    </div>
+</a>

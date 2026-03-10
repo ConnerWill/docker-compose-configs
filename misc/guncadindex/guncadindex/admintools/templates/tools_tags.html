@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load settings %}
+{% block og_title %}
+    {% settings_value 'GUNCAD_SITE_NAME' %}
+    - All Tags
+{% endblock og_title %}
+{% block title %}
+    All Tags
+{% endblock title %}
+{% block content %}
+    {% regroup items by category as categorized_tags %}
+    <div class="subcontainer">
+        <h1>All Tags</h1>
+        <p>Here's every last one of the fuckers:</p>
+        <div class="three-column-grid">
+            {% for category in categorized_tags %}
+                <div>
+                    <h1>{{ category.grouper.name }}</h1>
+                    <p>{{ category.grouper.description }}</p>
+                    {% for tag in category.list %}
+                        {% include 'tag.html' with linkurl=True %}
+                    {% endfor %}
+                </div>
+            {% empty %}
+                <p>No tags?</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock content %}

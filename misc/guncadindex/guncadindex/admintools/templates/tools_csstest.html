@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load settings static %}
+{% block og_title %}
+    {% settings_value 'GUNCAD_SITE_NAME' %}
+    - CSS Test
+{% endblock og_title %}
+{% block title %}
+    CSS Test
+{% endblock title %}
+{% block content %}
+    <div class="subcontainer">
+        <h1>CSS Test Page</h1>
+        <p>This page should be used to test CSS layouts yadda yadda</p>
+    </div>
+    <div class="subcontainer">
+        <h1>Releases</h1>
+        <p>In order:</p>
+        <ol>
+            <li>A release card with the object set to an empty string</li>
+            <li>A random release from the Index</li>
+            <li>The same release, but as a link</li>
+        </ol>
+        <div class="grid fill-250">
+            {% include 'release.html' with object="" %}
+            {% include 'release.html' with object=test_release %}
+            {% include 'release.html' with object=test_release linkurl=True %}
+        </div>
+        <p>
+            Here's one displayed inline, which should cause it to be displayed wide on desktop but still as a card on mobile:
+        </p>
+        {% include 'release.html' with object=test_release %}
+    </div>
+{% endblock content %}

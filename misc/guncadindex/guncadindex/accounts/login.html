@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load settings %}
+{% block og_title %}
+    {% settings_value 'GUNCAD_SITE_NAME' %}
+    - Login
+{% endblock og_title %}
+{% block title %}
+    Login
+{% endblock title %}
+{% block content %}
+    <div class="subcontainer"></div>
+{% endblock content %}

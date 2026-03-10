@@ -1,0 +1,40 @@
+{
+	"name": "GunCAD Index",
+	"short_name": "GC Index",
+	"description": "A search engine for guns",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#2a2a2a",
+	"theme_color": "#2a2a2a",
+	"categories": ["productivity", "sports", "utilities"],
+	"icons": [
+		{
+			"src": "/static/generated/icon-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any",
+			"type": "image/png"
+		},
+		{
+			"src": "/static/generated/icon-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/static/generated/icon-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/static/generated/icon-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable",
+			"type": "image/png"
+		}
+
+	]
+}
+

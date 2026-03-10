@@ -1,0 +1,98 @@
+$foreground-relative: var(--foreground-relative) !default;
+$foreground: var(--foreground) !default;
+$foreground-dark: var(--foreground-dark) !default;
+$background-bright: var(--background-bright) !default;
+$background: var(--background) !default;
+$background-dark: var(--background-dark) !default;
+$trim: var(--trim) !default;
+$background-brighter: var(--background-brighter) !default;
+$background-darker: var(--background-darker) !default;
+$primary: var(--primary) !default;
+$primary-alt: var(--primary-alt) !default;
+$positive: var(--positive) !default;
+$positive-alt: var(--positive-alt) !default;
+$negative: var(--negative) !default;
+$negative-alt: var(--negative-alt) !default;
+$debug: var(--debug) !default;
+$debug-alt: var(--debug-alt) !default;
+$favorite: var(--favorite) !default;
+$favorite-alt: var(--favorite-alt) !default;
+$brand-odysee: var(--brand-odysee) !default;
+$brand-odysee-alt: var(--brand-odysee-alt) !default;
+$brand-lbry: var(--brand-lbry) !default;
+$brand-lbry-alt: var(--brand-lbry-alt) !default;
+$font-family: var(--font-family) !default;
+$font-family-monospace: var(--font-family-monospace) !default;
+$media-width: 600px !default;
+$content-width: var(--content-width) !default;
+$border-radius: var(--border-radius) !default;
+$border-radius-narrow: var(--border-radius-narrow) !default;
+$border-thickness: var(--border-thickness) !default;
+$line-height: var(--line-height) !default;
+$padding: var(--padding) !default;
+$padding-medium: var(--padding-medium) !default;
+$padding-fat: var(--padding-fat) !default;
+$padding-fatter: var(--padding-fatter) !default;
+$transition: var(--transition) !default;
+$shadow: var(--shadow) !default;
+$shadow-birthday: var(--shadow-birthday) !default;
+$shadow-glow: var(--shadow-glow) !default;
+
+:root {
+  // Colors
+  // Common colors for content
+  --foreground-relative: rgba(255,255,255,0.9);
+  --foreground: #dbdbdb;
+  --foreground-dark: rgba(0,0,0,0.85);
+  --background-bright: #3a3a3a;
+  --background: #2a2a2a;
+  --background-dark: #1a1a1a;
+  --trim: #dbdbdb44;
+  // Relative background recolors
+  --background-brighter: rgba(255,255,255,0.05);
+  --background-darker: rgba(0,0,0,0.15);
+  // The site's primary accent color, used in links and selections
+  --primary: #3786db;
+  --primary-alt: #77b2f2;
+  // Positive user feedback
+  --positive: #5eb814;
+  --positive-alt: #87c951;
+  // Negative user feedback
+  --negative: #e8837d;
+  --negative-alt: #e8ada2;
+  // Favorited elements
+  --favorite: #ffab24;
+  --favorite-alt: #ffc569;
+  // Debug elements
+  --debug: #ffab24;
+  --debug-alt: #ffc569;
+
+  // Branding colors
+  --brand-odysee: #ef1d6e;
+  --brand-odysee-alt: #fba41e;
+  --brand-lbry: #2f9176;
+  --brand-lbry-alt: #38d989;
+
+  // Fonts
+  --font-family: "IBM Plex Sans", "Roboto", sans-serif;
+  --font-family-monospace: "IBM Plex Mono", monospace;
+
+  // Other constants
+  --content-width: 96em; // Maximum content width for larger displays
+  --border-radius: 8px;
+  --border-radius-narrow: $border-radius*0.25;
+  --border-thickness: 2px;
+  --line-height: 1.2;
+  --padding: 0.25em;
+  --padding-medium: 0.50em;
+  --padding-fat: 0.75em;
+  --padding-fatter: 1.00em;
+  // Stock transition for most movements
+  --transition: .04s ease-in;
+  // The shadow we use on all elements that get it
+  --shadow: 5px 5px 8px -5px rgba(0,0,0,0.40);
+  // The shadow we use on select elements if a release has its birthday today
+  --shadow-birthday: 0px 0px 20px -5px rgba(255,148,148,0.60);
+  // Halo around positive things
+  --shadow-glow: 0 0 20px 0 rgba(227,176,23,0.75);
+}
