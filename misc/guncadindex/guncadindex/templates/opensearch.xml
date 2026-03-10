@@ -1,8 +1,0 @@
-{% load settings static %}<?xml version="1.0" encoding="UTF-8"?>
-<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
-	<ShortName>{% settings_value 'GUNCAD_SITE_NAME' %}</ShortName>
-	<Description>Search for DIY firearm designs on {% settings_value 'GUNCAD_SITE_NAME' %}</Description>
-	<Url type="text/html" method="get" template="{{ request.scheme }}://{{ request.get_host }}/search?query={searchTerms}"/>
-	<Image height="32" width="32" type="image/png">{{ request.scheme }}://{{ request.get_host }}{% static 'generated/favicon-32.png' %}</Image>
-	<InputEncoding>UTF-8</InputEncoding>
-</OpenSearchDescription>
