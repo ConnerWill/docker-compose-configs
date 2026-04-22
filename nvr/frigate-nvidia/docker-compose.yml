@@ -1,10 +1,42 @@
+# https://docs.frigate.video/frigate/planning_setup
+
 services:
   frigate:
-    container_name: frigate
-    image: ghcr.io/blakeblackshear/frigate:0.17.0-tensorrt
+    container_name: ${FRIGATE_NAME:-frigate}
+    image: ${FRIGATE_IMAGE:-ghcr.io/blakeblackshear/frigate}:${FRIGATE_IMAGE_VERSION:-0.17.0-tensorrt}
     restart: unless-stopped
-    stop_grace_period: 30s
-    shm_size: "1gb"
+    stop_grace_period: 30s  # allow enough time to shut down the various services
+    # TODO: Decide correct size
+    shm_size: ${FRIGATE_SHM_SIZE:-1gb}  # update for your cameras based on calculation in https://docs.frigate.video/frigate/installation/#calculating-required-shm-size
+    # TODO: Confirm if we want this
+    privileged: true # this may not be necessary for all setups
+    # TODO: Confirm if we want this
+    security_opt:
+      - no-new-privileges:true
+
+    environment:
+      TZ: ${TZ:-America/Chicago}
+      LIBVA_DRIVER_NAME: nvidia
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
+      FRIGATE_RTSP_PASSWORD: ${FRIGATE_RTSP_PASSWORD:?You must define a password for RSTP, or remove this option}
+
+    # https://docs.frigate.video/frigate/installation#storage
+    volumes:
+      - ${LOCALTIME_FILE:-/etc/localtime}:/etc/localtime:ro
+      - ${FRIGATE_CONFIG_DIR:-/opt/frigate/config}:/config
+      - ${FRIGATE_STORAGE_DIR:-/nvr/frigate/media}:/media/frigate
+      # TODO: Decide correct size
+      - type: tmpfs  # In-memory filesystem for recording segment storage
+        target: /tmp/cache
+        tmpfs:
+          size: ${FRIGATE_TMPFS_SIZE:-2147483648}
+
+    ports:
+      - "8971:8971"      # Web UI
+      - "8554:8554"      # Restreamed RTSP
+      - "8555:8555/tcp"  # WebRTC
+      - "8555:8555/udp"  # WebRTC
 
     deploy:
       resources:
@@ -15,34 +47,17 @@ services:
               capabilities:
                 - gpu
 
-    environment:
-      TZ: America/Chicago
-      LIBVA_DRIVER_NAME: nvidia
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
-
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /srv/frigate/config:/config
-      - /srv/frigate/storage:/media/frigate
-      - type: tmpfs
-        target: /tmp/cache
-        tmpfs:
-          size: 2147483648
-
-    ports:
-      - "8971:8971"          # Web UI
-      # - "5000:5000"        # Internal unauthenticated API; leave disabled unless you specifically need it
-      - "8554:8554"          # Restreamed RTSP
-      - "8555:8555/tcp"      # WebRTC
-      - "8555:8555/udp"      # WebRTC
-
-    security_opt:
-      - no-new-privileges:true
-
+    # TODO: Validate this is correct
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5000/api/version || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
+
+    # TODO: Decide correct size
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
