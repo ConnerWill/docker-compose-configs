@@ -1,23 +1,63 @@
----
+# https://docs.frigate.video/frigate/planning_setup
+
 services:
   frigate:
-    container_name: frigate
-    privileged: true
+    container_name: ${FRIGATE_NAME:-frigate}
+    image: ${FRIGATE_IMAGE:-ghcr.io/blakeblackshear/frigate}:${FRIGATE_IMAGE_VERSION:-0.17.0-tensorrt}
     restart: unless-stopped
-    image: ghcr.io/blakeblackshear/frigate:stable
-    shm_size: '64mb'
+    stop_grace_period: 30s  # allow enough time to shut down the various services
+    # TODO: Decide correct size
+    shm_size: ${FRIGATE_SHM_SIZE:-1gb}  # update for your cameras based on calculation in https://docs.frigate.video/frigate/installation/#calculating-required-shm-size
+    # TODO: Confirm if we want this
+    privileged: true # this may not be necessary for all setups
+    # TODO: Confirm if we want this
+    security_opt:
+      - no-new-privileges:true
+
+    environment:
+      TZ: ${TZ:-America/Chicago}
+      LIBVA_DRIVER_NAME: nvidia
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
+      FRIGATE_RTSP_PASSWORD: ${FRIGATE_RTSP_PASSWORD:?You must define a password for RSTP, or remove this option}
+
+    # https://docs.frigate.video/frigate/installation#storage
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ${FRIGATE_CONFIG_DIR:-./frigate/config}:/config
-      - ${FRIGATE_MEDIA_DIR:-./frigate/media}:/media/frigate
-      - type: tmpfs
+      - ${LOCALTIME_FILE:-/etc/localtime}:/etc/localtime:ro
+      - ${FRIGATE_CONFIG_DIR:-/opt/frigate/config}:/config
+      - ${FRIGATE_STORAGE_DIR:-/nvr/frigate/media}:/media/frigate
+      # TODO: Decide correct size
+      - type: tmpfs  # In-memory filesystem for recording segment storage
         target: /tmp/cache
         tmpfs:
-          size: 1000000000
+          size: ${FRIGATE_TMPFS_SIZE:-2147483648}
+
     ports:
-      - '5000:5000'      # Port used by the Web UI
-      - '8554:8554'      # RTSP feeds
-      - '8555:8555/tcp'  # WebRTC over tcp
-      - '8555:8555/udp'  # WebRTC over udp
-    environment:
-      FRIGATE_RTSP_PASSWORD: ${FRIGATE_RTSP_PASSWORD}
+      - "8971:8971"      # Web UI
+      - "8554:8554"      # Restreamed RTSP
+      - "8555:8555/tcp"  # WebRTC
+      - "8555:8555/udp"  # WebRTC
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities:
+                - gpu
+
+    # TODO: Validate this is correct
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5000/api/version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    # TODO: Decide correct size
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
