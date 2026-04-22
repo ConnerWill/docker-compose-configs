@@ -1,0 +1,48 @@
+services:
+  frigate:
+    container_name: frigate
+    image: ghcr.io/blakeblackshear/frigate:0.17.0-tensorrt
+    restart: unless-stopped
+    stop_grace_period: 30s
+    shm_size: "1gb"
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities:
+                - gpu
+
+    environment:
+      TZ: America/Chicago
+      LIBVA_DRIVER_NAME: nvidia
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
+
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /srv/frigate/config:/config
+      - /srv/frigate/storage:/media/frigate
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs:
+          size: 2147483648
+
+    ports:
+      - "8971:8971"          # Web UI
+      # - "5000:5000"        # Internal unauthenticated API; leave disabled unless you specifically need it
+      - "8554:8554"          # Restreamed RTSP
+      - "8555:8555/tcp"      # WebRTC
+      - "8555:8555/udp"      # WebRTC
+
+    security_opt:
+      - no-new-privileges:true
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5000/api/version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

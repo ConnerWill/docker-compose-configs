@@ -1,0 +1,94 @@
+mqtt:
+  enabled: false
+
+database:
+  path: /config/frigate.db
+
+auth:
+  enabled: true
+
+go2rtc:
+  streams:
+    front_door_sub:
+      - rtsp://YOUR_CAMERA_USERNAME:YOUR_CAMERA_PASSWORD@YOUR_CAMERA_IP:554/cam/realmonitor?channel=1&subtype=1
+    front_door_main:
+      - rtsp://YOUR_CAMERA_USERNAME:YOUR_CAMERA_PASSWORD@YOUR_CAMERA_IP:554/cam/realmonitor?channel=1&subtype=0
+
+ffmpeg:
+  hwaccel_args: preset-nvidia
+
+detectors:
+  onnx:
+    type: onnx
+
+model:
+  model_type: yolo-generic
+  width: 320
+  height: 320
+  input_tensor: nchw
+  input_dtype: float
+  path: /config/model_cache/yolo.onnx
+  labelmap_path: /labelmap/coco-80.txt
+
+record:
+  enabled: true
+  retain:
+    days: 7
+    mode: motion
+  alerts:
+    retain:
+      days: 14
+  detections:
+    retain:
+      days: 14
+
+snapshots:
+  enabled: true
+  clean_copy: true
+  timestamp: true
+  bounding_box: true
+  retain:
+    default: 14
+
+objects:
+  track:
+    - person
+    - car
+    - dog
+    - cat
+
+birdseye:
+  enabled: true
+  mode: continuous
+
+cameras:
+  front_door:
+    enabled: true
+
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/front_door_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+        - path: rtsp://127.0.0.1:8554/front_door_main
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+
+    detect:
+      enabled: true
+      width: 1280
+      height: 720
+      fps: 5
+
+    record:
+      enabled: true
+
+    snapshots:
+      enabled: true
+
+    live:
+      stream_name: front_door_main
+
+version: 0.17-0
