@@ -10,6 +10,9 @@ services:
     # TODO: Confirm this is correct
     # user: ${PUID:-1000}:${PGID:-1000}
     network_mode: host
+    dns:
+      - ${DNS1:-1.1.1.1}
+      - ${DNS2:-8.8.8.8}
     restart: unless-stopped
     environment:
       - TZ=${TZ:-America/Chicago}
